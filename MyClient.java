@@ -42,7 +42,9 @@ public class MyClient {
     public static String determineCase(ArrayList<String> ordering)
     {
     	ArrayList<String> everyViewpoints = new ArrayList<String>();
-		String[] allPoints = new String[]{ "ABCEG", "BDCFH", "BDEFH", "ACEFG", "BDFGH", "ABDEG", "ABDFG", "ACDFG", "ABDEH", "ABDFH", "ACDFH", "ABEFH", "ACEFH", "BCEFH", "ABDGH", "ACDGH", "ABEGH", "ACEGH", "BCEGH", "ADEGH", "BDEGH", "ADG", "BEH", "ACF", "BDG", "CEH", "ADF", "CFH", "ACDG", "BDEH", "ACEF", "BDFG", "CEGH", "ADFH", "ABEG", "BCFH" };
+		//String[] allPoints = new String[]{ "ABCEG", "BDCFH", "BDEFH", "ACEFG", "BDFGH", "ABDEG", "ABDFG", "ACDFG", "ABDEH", "ABDFH", "ACDFH", "ABEFH", "ACEFH", "BCEFH", "ABDGH", "ACDGH", "ABEGH", "ACEGH", "BCEGH", "ADEGH", "BDEGH", "ADG", "BEH", "ACF", "BDG", "CEH", "ADF", "CFH", "ACDG", "BDEH", "ACEF", "BDFG", "CEGH", "ADFH", "ABEG", "BCFH" };
+		String[] allPoints = new String[]{"ABC", "ABD", "ACD", "BCD", "ABCD", "ABE", "ACE", "BCE", "ABCE", "ADE", "BDE", "ABDE", "CDE", "ACDE", "BCDE", "ABCDE", "ABF", "ACF", "BCF", "ABCF", "ADF", "BDF", "ABDF", "CDF", "ACDF", "BCDF", "ABCDF", "AEF", "BEF", "ABEF", "CEF", "ACEF", "BCEF", "ABCEF", "DEF", "ADEF", "BDEF", "ABDEF", "CDEF", "ACDEF", "BCDEF", "ABCDEF", "ABG", "ACG", "BCG", "ABCG", "ADG", "BDG", "ABDG", "CDG", "ACDG", "BCDG", "ABCDG", "AEG", "BEG", "ABEG", "CEG", "ACEG", "BCEG", "ABCEG", "DEG", "ADEG", "BDEG", "ABDEG", "CDEG", "ACDEG", "BCDEG", "ABCDEG", "AFG", "BFG", "ABFG", "CFG", "ACFG", "BCFG", "ABCFG", "DFG", "ADFG", "BDFG", "ABDFG", "CDFG", "ACDFG", "BCDFG", "ABCDFG", "EFG", "AEFG", "BEFG", "ABEFG", "CEFG", "ACEFG", "BCEFG", "ABCEFG", "DEFG", "ADEFG", "BDEFG", "ABDEFG", "CDEFG", "ACDEFG", "BCDEFG", "ABH", "ACH", "BCH", "ABCH", "ADH", "BDH", "ABDH", "CDH", "ACDH", "BCDH", "ABCDH", "AEH", "BEH", "ABEH", "CEH", "ACEH", "BCEH", "ABCEH", "DEH", "ADEH", "BDEH", "ABDEH", "CDEH", "ACDEH", "BCDEH", "ABCDEH", "AFH", "BFH", "ABFH", "CFH", "ACFH", "BCFH", "ABCFH", "DFH", "ADFH", "BDFH", "ABDFH", "CDFH", "ACDFH", "BCDFH", "ABCDFH", "EFH", "AEFH", "BEFH", "ABEFH", "CEFH", "ACEFH", "BCEFH", "ABCEFH", "DEFH", "ADEFH", "BDEFH", "ABDEFH", "CDEFH", "ACDEFH", "BCDEFH", "AGH", "BGH", "ABGH", "CGH", "ACGH", "BCGH", "ABCGH", "DGH", "ADGH", "BDGH", "ABDGH", "CDGH", "ACDGH", "BCDGH", "ABCDGH", "EGH", "AEGH", "BEGH", "ABEGH", "CEGH", "ACEGH", "BCEGH", "ABCEGH", "DEGH", "ADEGH", "BDEGH", "ABDEGH", "CDEGH", "ACDEGH", "BCDEGH", "FGH", "AFGH", "BFGH", "ABFGH", "CFGH", "ACFGH", "BCFGH", "ABCFGH", "DFGH", "ADFGH", "BDFGH", "ABDFGH", "CDFGH", "ACDFGH", "BCDFGH", "EFGH", "AEFGH", "BEFGH", "ABEFGH", "CEFGH", "ACEFGH", "BCEFGH", "DEFGH", "ADEFGH", "BDEFGH", "CDEFGH"}; 
+
 		
 		for (String s : allPoints)
 		{
@@ -50,9 +52,10 @@ public class MyClient {
 		}
 		ArrayList<String> usableViewpoints = new ArrayList<String>();
 		usableViewpoints = availableViewpoints(ordering, everyViewpoints);
-		if (usableViewpoints.size() == 0)
+		int viewPointsToCheck = 40;
+		if (usableViewpoints.size() <= 210 - viewPointsToCheck)
 		{
-			System.out.println("We placed everything. ");
+			System.out.println("We placed " + viewPointsToCheck + " VPs.");//everything. ");
 			return ordering.toString();
 		}
 		int optimalViewpointIndex = -1;
@@ -152,7 +155,17 @@ public class MyClient {
 	// Yellow - Don't care if they see each other - cannot be too far away.
 
     HashMap<ArrayList<String>, String> edgeColor = new HashMap<ArrayList<String>, String>();
+	HashMap<ArrayList<String>, String> edgeColorCopy = new HashMap<ArrayList<String>, String>();
+	HashMap<ArrayList<String>, String> coloringWeWouldHaveAccepted = new HashMap<ArrayList<String>, String>();
+	boolean inFlippingPhase = false;
+	ArrayList<String> flippedEdge = null;
 	
+	
+	//-10 means they cannot be blocked
+	//-1 means they can be blocked but no specific blocker.
+	//>=0 means they can only be blocked by the point with the given index.
+	HashMap<ArrayList<String>, Integer> canBlockBelow = new HashMap<ArrayList<String>, Integer> ();
+	HashMap<ArrayList<String>, Integer> canBlockAbove = new HashMap<ArrayList<String>, Integer> ();
 	
 
     // For every pair of points (u,v):
@@ -172,21 +185,33 @@ public class MyClient {
         if (points.get(i).length() == 1) {
           if (points.get(j).length() == 1) {
             edgeColor.put(temp, "cyan");
+			canBlockBelow.put(temp,-1);
+			canBlockAbove.put(temp,-1);
           } else {
             if (points.get(j).indexOf(points.get(i)) == -1) {
               edgeColor.put(temp, "orange");
+			  canBlockBelow.put(temp,-1);
+			  canBlockAbove.put(temp,-1);
             } else {
               edgeColor.put(temp, "green");
+			  canBlockBelow.put(temp,-10);
+			  canBlockAbove.put(temp,-10);
             }
           }
         } else {
           if (points.get(j).length() > 1) {
             edgeColor.put(temp, "cyan");
+			canBlockBelow.put(temp,-1);
+			canBlockAbove.put(temp,-1);
           } else {
             if (points.get(i).indexOf(points.get(j)) == -1) {
               edgeColor.put(temp, "orange");
+			  canBlockBelow.put(temp,-1);
+			  canBlockAbove.put(temp,-1);
             } else {
               edgeColor.put(temp, "green");
+			  canBlockBelow.put(temp,-10);
+			  canBlockAbove.put(temp,-10);
             }
           }
         }
@@ -211,95 +236,149 @@ public class MyClient {
 		  
 		  int stoppingIndexForL = points.size();
 		  if(i==0)
-			  stoppingIndexForL = points.size()-2;
-		  else if(i==1)
 			  stoppingIndexForL = points.size()-1;
+		  //else if(i==1)
+		  //	  stoppingIndexForL = points.size()-1;
 		  
-        for (int l = i + 3; l != stoppingIndexForL; l++) {
+        for (int l = i + 2; l != stoppingIndexForL; l++) {
           pair.clear();
           computePair(i, l, pair, points);
-		  //System.out.println("Pair for " + i + " and " + l + ": " + pair);
-          //pair.add(points.get(i));
-          //pair.add(points.get(l));
-          if ((edgeColor.get(pair).compareTo("orange") != 0) && (edgeColor.get(pair).compareTo("cyan") != 0) && (edgeColor.get(pair).compareTo("red") != 0) && (edgeColor.get(pair).compareTo("yellow") != 0)) {
-            continue;
-          }
-          int stoppingIndexForM;
-          if(i==0)
-            stoppingIndexForM = points.size()-1;
-          else
-            stoppingIndexForM = i-1;
+		  
+		  if(canBlockAbove.get(pair) < -1 && canBlockBelow.get(pair) < -1)
+			continue;
+			
+		  //int belowBlocker = -1;
+		  if(canBlockBelow.get(pair) >= -1){
+			  
+				int j = i;
+				String jlColor="";
+				do{
+				  j++;
+				  if(j<l){
+					pair.clear();
+					computePair(j, l, pair, points);
+					jlColor = edgeColor.get(pair);
+				  }
+				}while(j<l && !cannotBlock(jlColor));
+				  
+			  
+				int k=l;
+				String ikColor="";
+				do{
+					k--;
+					if(k>=j){
+						pair.clear();
+						computePair(i, k, pair, points);
+						ikColor = edgeColor.get(pair);
+					}
+					
+				}while(k >= j && !cannotBlock(ikColor));
+				
+				
+				if(k>j){
+					pair.clear();
+					computePair(i, l, pair, points);
+					canBlockBelow.put(pair,-10);
+				}
+				else if(k==j){
+					pair.clear();
+					computePair(i, l, pair, points);
+					canBlockBelow.put(pair,k);
+				}			  
+			  
+		  }
+		  
+		  pair.clear();
+		  computePair(i, l, pair, points);
+		  if(canBlockAbove.get(pair) >= -1){
+			  
+				int m = l;
+				String imColor="";
+				do{
+				  m = (m+1)%points.size();
+				  if(m!=i){
+					pair.clear();
+					computePair(i, m, pair, points);
+					imColor = edgeColor.get(pair);
+				  }
+				}while(m!=i && !cannotBlock(imColor));
+				  
+			  
+				int n = i;
+				int stoppingIndexForN = m-1;
+				if(m==0) stoppingIndexForN = points.size()-1;
+				
+				String lnColor="";
+				do{
+					n--;
+					if(n < 0) n = points.size()-1;
+					if(n!=stoppingIndexForN){
+						pair.clear();
+						computePair(n, l, pair, points);
+						lnColor = edgeColor.get(pair);
+					}
+					
+				}while(n!=stoppingIndexForN && !cannotBlock(lnColor));
+				
+				
+				if(n == m){
+					pair.clear();
+					computePair(i, l, pair, points);
+					canBlockAbove.put(pair,n);
+				}
+				else if(n!=stoppingIndexForN){
+					pair.clear();
+					computePair(i, l, pair, points);
+					canBlockAbove.put(pair,-10);
+				}
+						  
+			  
+		  }
+		  
+		  if(canBlockAbove.get(pair) < -1 && canBlockBelow.get(pair) < -1){
+			  
+			  //Last time we could block on one side, but now we cannot block on either side.
+			 
+				pair.clear();
+				computePair(i, l, pair, points);
+				//pair.add(points.get(i));
+				//pair.add(points.get(l));
 
-          //int stoppingIndexForM;
-          //if(stoppingIndexForN == 0)
-           // stoppingIndexForM = points.size();
-         // else
-          //  stoppingIndexForM = stoppingIndexForN;
-          for (int j = i + 1; j < l - 1; j++) {
-            pair.clear();
-            computePair(j, l, pair, points);
-			//System.out.println("Pair for " + j + " and " + l + ": " + pair);
-            //pair.add(points.get(j));
-            //pair.add(points.get(l));
-            if ((edgeColor.get(pair).compareTo("purple") != 0) && (edgeColor.get(pair).compareTo("green") != 0)
-                && (edgeColor.get(pair).compareTo("blue") != 0)) {
-              continue;
-            }
-            for (int k = j + 1; k < l; k++) {
-              pair.clear();
-              computePair(i, k, pair, points);
-			  //System.out.println("Pair for " + i + " and " + k + ": " + pair);
-              //pair.add(points.get(i));
-              //pair.add(points.get(k));
-              if ((edgeColor.get(pair).compareTo("purple") != 0) && (edgeColor.get(pair).compareTo("green") != 0)
-                  && (edgeColor.get(pair).compareTo("blue") != 0)) // unpierceable
-              {
-                continue;
-              }
-              for (int m = (l + 1)%points.size(); m != stoppingIndexForM; m = (m+1)%points.size()) {
-                pair.clear();
-                computePair(i, m, pair, points);
-				//System.out.println("Pair for " + i + " and " + m + ": " + pair);
-                //pair.add(points.get(i));
-                //pair.add(points.get(m));
-                if ((edgeColor.get(pair).compareTo("purple") != 0) && (edgeColor.get(pair).compareTo("green") != 0)
-                    && (edgeColor.get(pair).compareTo("blue") != 0)) {
-                  continue;
-                }
-                
-                for (int n = (m + 1)%points.size(); n != i; n = (n+1)%points.size()) {
-                  pair.clear();
-                  computePair(n, l, pair, points);
-				  //System.out.println("Pair for " + n + " and " + l + ": " + pair);
-                  //pair.add(points.get(l));
-                  //pair.add(points.get(n));
-                  if ((edgeColor.get(pair).compareTo("purple") == 0) || (edgeColor.get(pair).compareTo("green") == 0)
-                      || (edgeColor.get(pair).compareTo("blue") == 0)) {
-                    pair.clear();
-                    computePair(i, l, pair, points);
-                    //pair.add(points.get(i));
-                    //pair.add(points.get(l));
-
-                    if (edgeColor.get(pair).compareTo("orange") == 0) {
-                      edgeColor.replace(pair, "purple");
-                      updatedAnEdge = true;
-                    }
-                    else if (edgeColor.get(pair).compareTo("cyan") == 0) {
-                      edgeColor.replace(pair, "blue");
-                      updatedAnEdge = true;
-                    }
-					else if(edgeColor.get(pair).compareTo("yellow") == 0) {
-                      edgeColor.replace(pair, "green");
-                      updatedAnEdge = true;
-                    }
-					else if(edgeColor.get(pair).compareTo("red") == 0) {
-                      return false;
-                    }
-                  }
-                }
-              }
-            }
-          }
+				if (edgeColor.get(pair).toLowerCase().compareTo("orange") == 0) {
+				  edgeColor.replace(pair, "purple");
+				  updatedAnEdge = true;
+				}
+				else if (edgeColor.get(pair).toLowerCase().compareTo("cyan") == 0) {
+				  edgeColor.replace(pair, "blue");
+				  updatedAnEdge = true;
+				}
+				else if(edgeColor.get(pair).toLowerCase().compareTo("yellow") == 0) {
+				  edgeColor.replace(pair, "green");
+				  updatedAnEdge = true;
+				}
+				else if(edgeColor.get(pair).toLowerCase().compareTo("red") == 0) {
+					if(flippedEdge == null)
+						return false;
+					else if(edgeColor.get(flippedEdge).equals("RED")){
+						edgeColorCopy.replace(flippedEdge,"green");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else if(edgeColor.get(flippedEdge).equals("GREEN")){
+						edgeColorCopy.replace(flippedEdge,"red");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else{
+						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+					}
+				}
+                  
+			  
+		  }
+		  
         }
       }//End encircleing 
 	  
@@ -310,7 +389,7 @@ public class MyClient {
           pair.add(points.get(i));
           pair.add(points.get(k));
 		  String ikColor = edgeColor.get(pair);
-          if (!mustBeClose(ikColor) && !ikColor.equals("blue")) {
+          if (!mustBeClose(ikColor) && !ikColor.equalsIgnoreCase("blue")) {
             continue;
           }
           for (int j = i + 1; j < k; j++) {
@@ -319,7 +398,7 @@ public class MyClient {
               pair.add(points.get(j));
               pair.add(points.get(l));
 			  String jlColor = edgeColor.get(pair);
-			  if ((!mustBeClose(jlColor) && !jlColor.equals("blue")) || (ikColor.equals("blue") && jlColor.equals("blue"))) {
+			  if ((!mustBeClose(jlColor) && !jlColor.equalsIgnoreCase("blue")) || (ikColor.equalsIgnoreCase("blue") && jlColor.equalsIgnoreCase("blue"))) {
 				continue;
 			  }
 			  
@@ -332,23 +411,39 @@ public class MyClient {
                 pair.clear();
                 pair.add(points.get(i));
                 pair.add(points.get(j));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
+                if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
                   pair.clear();
                   pair.add(points.get(k));
                   pair.add(points.get(l));
-                  if (edgeColor.get(pair).compareTo("purple") == 0) {
+                  if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
 					  
-                    return false;
+                    if(flippedEdge == null)
+						return false;
+					else if(edgeColor.get(flippedEdge).equals("RED")){
+						edgeColorCopy.replace(flippedEdge,"green");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else if(edgeColor.get(flippedEdge).equals("GREEN")){
+						edgeColorCopy.replace(flippedEdge,"red");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else{
+						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+					}
                   }
-				  else if (edgeColor.get(pair).compareTo("orange") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("orange") == 0) {
                     edgeColor.replace(pair, "red");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("blue") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("blue") == 0) {
                     edgeColor.replace(pair, "green");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("cyan") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("cyan") == 0) {
                     edgeColor.replace(pair, "yellow");
                     updatedAnEdge = true;
                   }
@@ -358,147 +453,89 @@ public class MyClient {
                 pair.clear();
                 pair.add(points.get(i));
                 pair.add(points.get(l));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
+                if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
                   pair.clear();
                   pair.add(points.get(j));
                   pair.add(points.get(k));
-                  if (edgeColor.get(pair).compareTo("purple") == 0) {
+                  if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
 					  
-                    return false;
+                    if(flippedEdge == null)
+						return false;
+					else if(edgeColor.get(flippedEdge).equals("RED")){
+						edgeColorCopy.replace(flippedEdge,"green");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else if(edgeColor.get(flippedEdge).equals("GREEN")){
+						edgeColorCopy.replace(flippedEdge,"red");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else{
+						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+					}
                   }
-				  else if (edgeColor.get(pair).compareTo("orange") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("orange") == 0) {
                     edgeColor.replace(pair, "red");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("blue") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("blue") == 0) {
                     edgeColor.replace(pair, "green");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("cyan") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("cyan") == 0) {
                     edgeColor.replace(pair, "yellow");
                     updatedAnEdge = true;
                   }
                 }
 
-                /*pair.clear();
-                pair.add(points.get(i));
-                pair.add(points.get(j));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
-                  pair.clear();
-                  pair.add(points.get(k));
-                  pair.add(points.get(l));
-                  if (edgeColor.get(pair).compareTo("orange") == 0) {
-                    edgeColor.replace(pair, "red");
-                    updatedAnEdge = true;
-                  }
-                }*/
+       
 
                 pair.clear();
                 pair.add(points.get(k));
                 pair.add(points.get(l));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
+                if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
                   pair.clear();
                   pair.add(points.get(i));
                   pair.add(points.get(j));
-                  if (edgeColor.get(pair).compareTo("orange") == 0) {
+                  if (edgeColor.get(pair).toLowerCase().compareTo("orange") == 0) {
                     edgeColor.replace(pair, "red");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("blue") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("blue") == 0) {
                     edgeColor.replace(pair, "green");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("cyan") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("cyan") == 0) {
                     edgeColor.replace(pair, "yellow");
                     updatedAnEdge = true;
                   }
                 }
 
-                /*pair.clear();
-                pair.add(points.get(i));
-                pair.add(points.get(l));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
-                  pair.clear();
-                  pair.add(points.get(j));
-                  pair.add(points.get(k));
-                  if (edgeColor.get(pair).compareTo("orange") == 0) {
-                    edgeColor.replace(pair, "red");
-                    updatedAnEdge = true;
-                  }
-                }*/
 
                 pair.clear();
                 pair.add(points.get(j));
                 pair.add(points.get(k));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
+                if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
                   pair.clear();
                   pair.add(points.get(i));
                   pair.add(points.get(l));
-                  if (edgeColor.get(pair).compareTo("orange") == 0) {
+                  if (edgeColor.get(pair).toLowerCase().compareTo("orange") == 0) {
                     edgeColor.replace(pair, "red");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("blue") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("blue") == 0) {
                     edgeColor.replace(pair, "green");
                     updatedAnEdge = true;
                   }
-				  else if (edgeColor.get(pair).compareTo("cyan") == 0) {
+				  else if (edgeColor.get(pair).toLowerCase().compareTo("cyan") == 0) {
                     edgeColor.replace(pair, "yellow");
                     updatedAnEdge = true;
                   }
                 }
 
-               /* pair.clear();
-                pair.add(points.get(i));
-                pair.add(points.get(j));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
-                  pair.clear();
-                  pair.add(points.get(k));
-                  pair.add(points.get(l));
-                  if (edgeColor.get(pair).compareTo("blue") == 0) {
-                    edgeColor.replace(pair, "green");
-                    updatedAnEdge = true;
-                  }
-                }*/
-
-                /*pair.clear();
-                pair.add(points.get(k));
-                pair.add(points.get(l));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
-                  pair.clear();
-                  pair.add(points.get(i));
-                  pair.add(points.get(j));
-                  if (edgeColor.get(pair).compareTo("blue") == 0) {
-                    edgeColor.replace(pair, "green");
-                    updatedAnEdge = true;
-                  }
-                }*/
-
-                /*pair.clear();
-                pair.add(points.get(i));
-                pair.add(points.get(l));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
-                  pair.clear();
-                  pair.add(points.get(j));
-                  pair.add(points.get(k));
-                  if (edgeColor.get(pair).compareTo("blue") == 0) {
-                    edgeColor.replace(pair, "green");
-                    updatedAnEdge = true;
-                  }
-                }*/
-
-                /*pair.clear();
-                pair.add(points.get(j));
-                pair.add(points.get(k));
-                if (edgeColor.get(pair).compareTo("purple") == 0) {
-                  pair.clear();
-                  pair.add(points.get(i));
-                  pair.add(points.get(l));
-                  if (edgeColor.get(pair).compareTo("blue") == 0) {
-                    edgeColor.replace(pair, "green");
-                    updatedAnEdge = true;
-                  }
-                }*/
               }
 			  else{
 				  
@@ -506,21 +543,21 @@ public class MyClient {
 				  pair.clear();
 					pair.add(points.get(i));
 					pair.add(points.get(j));
-					if (edgeColor.get(pair).compareTo("purple") == 0) {
+					if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
 					  pair.clear();
 					  pair.add(points.get(k));
 					  pair.add(points.get(l));
-					  if (edgeColor.get(pair).compareTo("purple") == 0) {
+					  if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
 						  
 						//Set blue edge to purple.
-						if(ikColor.equals("blue")){
+						if(ikColor.equalsIgnoreCase("blue")){
 							pair.clear();
 							pair.add(points.get(i));
 							pair.add(points.get(k));
 							edgeColor.replace(pair,"purple");
 							updatedAnEdge = true;
 						}
-						else if(jlColor.equals("blue")){
+						else if(jlColor.equalsIgnoreCase("blue")){
 							pair.clear();
 							pair.add(points.get(j));
 							pair.add(points.get(l));
@@ -533,21 +570,21 @@ public class MyClient {
 					 pair.clear();
 					pair.add(points.get(i));
 					pair.add(points.get(l));
-					if (edgeColor.get(pair).compareTo("purple") == 0) {
+					if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
 					  pair.clear();
 					  pair.add(points.get(j));
 					  pair.add(points.get(k));
-					  if (edgeColor.get(pair).compareTo("purple") == 0) {
+					  if (edgeColor.get(pair).toLowerCase().compareTo("purple") == 0) {
 						  
 						//Set blue edge to purple.
-						if(ikColor.equals("blue")){
+						if(ikColor.equalsIgnoreCase("blue")){
 							pair.clear();
 							pair.add(points.get(i));
 							pair.add(points.get(k));
 							edgeColor.replace(pair,"purple");
 							updatedAnEdge = true;
 						}
-						else if(jlColor.equals("blue")){
+						else if(jlColor.equalsIgnoreCase("blue")){
 							pair.clear();
 							pair.add(points.get(j));
 							pair.add(points.get(l));
@@ -571,61 +608,93 @@ public class MyClient {
 			  pair.clear();
 			  pair.add(points.get(i));
 			  pair.add(points.get(j));
-			  if(!edgeColor.get(pair).equals("red"))
+			  if(!edgeColor.get(pair).equalsIgnoreCase("red"))
 				  continue;
 			  
 			  //CCW side "below i,j".
+			  boolean edgeIsYellow = false;
 			  int z;
+			  boolean pointIsAGuard = points.get(i).length() == 1;
 			  for(z=j-1; z>i; z--){
 				  pair.clear();
 				  pair.add(points.get(i));
 				  pair.add(points.get(z));
 				  String color = edgeColor.get(pair);
-				  if(color.equals("green") || color.equals("blue"))
+				  if(color.equalsIgnoreCase("green") || color.equalsIgnoreCase("blue") || (pointIsAGuard && color.equalsIgnoreCase("yellow"))){
+					  if(color.equalsIgnoreCase("yellow")){
+						  edgeIsYellow = true;
+					  }
+					  
 					  break;
+				  }
 			  }
 			  
+			  if(edgeIsYellow)
+				continue;
+			  
 			  int y;
+			  pointIsAGuard = points.get(j).length() == 1;
 			  for(y=i+1; y<j; y++){
 				  pair.clear();
 				  pair.add(points.get(y));
 				  pair.add(points.get(j));
 				  String color = edgeColor.get(pair);
-				  if(color.equals("green") || color.equals("blue"))
+				  if(color.equalsIgnoreCase("green") || color.equalsIgnoreCase("blue") || (pointIsAGuard && color.equalsIgnoreCase("yellow"))){
+					  if(color.equalsIgnoreCase("yellow")){
+						  edgeIsYellow = true;
+					  }
 					  break;
+				  }
 			  }
+			  
+			  if(edgeIsYellow)
+				continue;
 			  
 			  boolean canBlockCCW = (z <= y);
 			  
 			  
+			  
 			  //Check CW side
 			  int a = i-1;
+			  pointIsAGuard = points.get(j).length() == 1;
 			  if(a<0) a = points.size()-1;
 			  while(a!=j){
 				  pair.clear();
 				  computePair(a, j, pair, points);
 				  String color = edgeColor.get(pair);
-				  if(color.equals("green") || color.equals("blue"))
+				  if(color.equalsIgnoreCase("green") || color.equalsIgnoreCase("blue") || (pointIsAGuard && color.equalsIgnoreCase("yellow"))){
+					  if(color.equalsIgnoreCase("yellow")){
+						  edgeIsYellow = true;
+					  }
 					  break;
+				  }
 				  
 				  a--;
 				  if(a<0) a = points.size()-1;
 			  }
 			  
 			  
+			  if(edgeIsYellow) continue;
+			  
 			  int b = j+1;
+			  pointIsAGuard = points.get(i).length() == 1;
 			  if(b==points.size()) b = 0;
 			  while(b!=i){
 				  pair.clear();
 				  computePair(b, i, pair, points);
 				  String color = edgeColor.get(pair);
-				  if(color.equals("green") || color.equals("blue"))
+				  if(color.equalsIgnoreCase("green") || color.equalsIgnoreCase("blue") || (pointIsAGuard && color.equalsIgnoreCase("yellow"))){
+					  if(color.equalsIgnoreCase("yellow")){
+						  edgeIsYellow = true;
+					  }
 					  break;
+				  }
 				  
 				  b++;
 				  if(b==points.size()) b = 0;
 			  }
 			  
+			  if(edgeIsYellow) continue;
 			  
 			  boolean canBlockCW;
 			  if(a >= j){
@@ -643,14 +712,24 @@ public class MyClient {
 			  }
 			  
 			  if(!canBlockCCW && !canBlockCW){
-				  /*System.out.println("Rejecting: " + points);
-				  System.out.println("No blocker for " + points.get(i) + " and " + points.get(j) + " on either side.");
-				  System.out.println("z: " + points.get(z));
-				  System.out.println("y: " + points.get(y));
-				  System.out.println("a: " + points.get(a));
-				  System.out.println("b: " + points.get(b));
-				  System.exit(1);*/
-				  return false;
+				  
+				  if(flippedEdge == null)
+						return false;
+					else if(edgeColor.get(flippedEdge).equals("RED")){
+						edgeColorCopy.replace(flippedEdge,"green");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else if(edgeColor.get(flippedEdge).equals("GREEN")){
+						edgeColorCopy.replace(flippedEdge,"red");
+						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+						updatedAnEdge = true;
+						flippedEdge = null;
+					}
+					else{
+						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+					}
 			  }
 			  
 			  if(canBlockCCW && canBlockCW)
@@ -665,7 +744,7 @@ public class MyClient {
 					  pair.add(points.get(i));
 					  pair.add(points.get(z));
 					  String datColor = edgeColor.get(pair);
-					  if(datColor.equals("blue")){
+					  if(datColor.equalsIgnoreCase("blue")){
 						edgeColor.replace(pair,"green");
 						 updatedAnEdge = true;
 					  }
@@ -674,7 +753,7 @@ public class MyClient {
 					  pair.add(points.get(z));
 					  pair.add(points.get(j));
 					  datColor = edgeColor.get(pair);
-					  if(datColor.equals("blue")){
+					  if(datColor.equalsIgnoreCase("blue")){
 						edgeColor.replace(pair,"green");
 						 updatedAnEdge = true;
 					  }
@@ -689,20 +768,36 @@ public class MyClient {
 							  
 							  String theirColor = edgeColor.get(pair);
 							  
-							  if(theirColor.equals("yellow")){
+							  if(theirColor.equalsIgnoreCase("yellow")){
 									edgeColor.replace(pair,"red");
 									updatedAnEdge = true;
 							  }
-							  else if(theirColor.equals("cyan")){
+							  else if(theirColor.equalsIgnoreCase("cyan")){
 								  
 								  edgeColor.replace(pair,"orange");
 									updatedAnEdge = true;
 								  
 							  }
-							  else if(theirColor.equals("blue") || theirColor.equals("green")){
+							  else if(theirColor.equalsIgnoreCase("blue") || theirColor.equalsIgnoreCase("green")){
 								  
 								  //System.out.println("REJECTION BRUH");
-								  return false;
+									if(flippedEdge == null)
+										return false;
+									else if(edgeColor.get(flippedEdge).equals("RED")){
+										edgeColorCopy.replace(flippedEdge,"green");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else if(edgeColor.get(flippedEdge).equals("GREEN")){
+										edgeColorCopy.replace(flippedEdge,"red");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else{
+										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+									}
 								  
 							  }
 							  
@@ -730,35 +825,51 @@ public class MyClient {
 								
 						  if(mustBeClose(iColor) && mustBeClose(jColor)){
 							  
-							  if(zColor.equals("purple")){
+							  if(zColor.equalsIgnoreCase("purple")){
 								  
 									  /*System.out.println("Rejecting: " + points);
 									  System.out.println("Need " + points.get(z) + " to block " + points.get(i) + " and " + points.get(j) + " but blocker needs to be too far from " + points.get(x));
 									System.exit(1);*/
-								  return false;
+									if(flippedEdge == null)
+										return false;
+									else if(edgeColor.get(flippedEdge).equals("RED")){
+										edgeColorCopy.replace(flippedEdge,"green");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else if(edgeColor.get(flippedEdge).equals("GREEN")){
+										edgeColorCopy.replace(flippedEdge,"red");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else{
+										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+									}
 							  }
-							  else if(zColor.equals("orange")){
+							  else if(zColor.equalsIgnoreCase("orange")){
 								  edgeColor.replace(pair,"red");
 								  updatedAnEdge = true;
 							  }
-							  else if(zColor.equals("cyan")){
+							  else if(zColor.equalsIgnoreCase("cyan")){
 								  edgeColor.replace(pair,"yellow");
 								  updatedAnEdge = true;
 							  }
-							  else if(zColor.equals("blue")){
+							  else if(zColor.equalsIgnoreCase("blue")){
 								  edgeColor.replace(pair,"green");
 								  updatedAnEdge = true;
 							  }
 						  }
 						  
-						  if(zColor.equals("purple")){
+						  if(zColor.equalsIgnoreCase("purple")){
 							  
 								if(mustBeClose(iColor))
 								{
 									pair.clear();
 									computePair(x, j, pair, points);
 									datColor = edgeColor.get(pair);
-									if(!datColor.equals("purple")){
+									if(!datColor.equalsIgnoreCase("purple")){
 										edgeColor.replace(pair,"purple");
 										updatedAnEdge = true;
 									}
@@ -770,9 +881,25 @@ public class MyClient {
 										String wColor = edgeColor.get(pair);
 										
 										if(mustBeClose(wColor)){
-											return false;
+											if(flippedEdge == null)
+												return false;
+											else if(edgeColor.get(flippedEdge).equals("RED")){
+												edgeColorCopy.replace(flippedEdge,"green");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else if(edgeColor.get(flippedEdge).equals("GREEN")){
+												edgeColorCopy.replace(flippedEdge,"red");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else{
+												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+											}
 										}
-										else if(!wColor.equals("purple")){
+										else if(!wColor.equalsIgnoreCase("purple")){
 											edgeColor.replace(pair,"purple");
 											updatedAnEdge = true;
 										}
@@ -784,7 +911,7 @@ public class MyClient {
 									pair.clear();
 									computePair(x, i, pair, points);
 									datColor = edgeColor.get(pair);
-									if(!datColor.equals("purple")){
+									if(!datColor.equalsIgnoreCase("purple")){
 										edgeColor.replace(pair,"purple");
 										updatedAnEdge = true;
 									}
@@ -796,14 +923,96 @@ public class MyClient {
 										String wColor = edgeColor.get(pair);
 										
 										if(mustBeClose(wColor)){
-											return false;
+											if(flippedEdge == null)
+												return false;
+											else if(edgeColor.get(flippedEdge).equals("RED")){
+												edgeColorCopy.replace(flippedEdge,"green");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else if(edgeColor.get(flippedEdge).equals("GREEN")){
+												edgeColorCopy.replace(flippedEdge,"red");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else{
+												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+											}
 										}
-										else if(!wColor.equals("purple")){
+										else if(!wColor.equalsIgnoreCase("purple")){
 											edgeColor.replace(pair,"purple");
 											updatedAnEdge = true;
 										}
 										
 									}
+								}
+								else{
+									
+									//All three of i, j, and z are outside of x's disk.
+									//System.out.println("We want " + points.get(z) + " to block " + points.get(i) + " and " + points.get(j) + ", and all three of them must be outside " + points.get(x) + "'s disk");
+									int w = i+1;
+									//if(w == points.size()) w=0;
+									boolean thereIsPointBetweenIandZinXDisc = false;
+									while(w!=z){
+										
+										pair.clear();
+										computePair(x, w, pair, points);
+										String wColor = edgeColor.get(pair);
+										
+										if(mustBeClose(wColor)){
+											thereIsPointBetweenIandZinXDisc = true;
+											break;
+										}
+										
+										
+										w++;
+										
+									}
+									
+									w = z+1;
+									boolean thereIsPointBetweenJandZinXDisc = false;
+									while(w!=j){
+										
+										pair.clear();
+										computePair(x, w, pair, points);
+										String wColor = edgeColor.get(pair);
+										
+										if(mustBeClose(wColor)){
+											thereIsPointBetweenJandZinXDisc = true;
+											break;
+											
+										}
+										
+										w++;
+										
+									}
+									
+									
+									if(thereIsPointBetweenJandZinXDisc && thereIsPointBetweenIandZinXDisc){
+										
+										if(flippedEdge == null)//System.out.println("REJECTION BRAH");
+											{ return false; }
+											else if(edgeColor.get(flippedEdge).equals("RED")){
+												edgeColorCopy.replace(flippedEdge,"green");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else if(edgeColor.get(flippedEdge).equals("GREEN")){
+												edgeColorCopy.replace(flippedEdge,"red");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else{
+												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+											}
+										
+									}
+									
+									
 								}
 					
 							  
@@ -829,7 +1038,7 @@ public class MyClient {
 					  pair.clear();
 					  computePair(a, i, pair, points);
 					 String datColor = edgeColor.get(pair);
-					  if(datColor.equals("blue")){
+					  if(datColor.equalsIgnoreCase("blue")){
 						edgeColor.replace(pair,"green");
 						 updatedAnEdge = true;
 					  }
@@ -837,7 +1046,7 @@ public class MyClient {
 					  pair.clear();
 					  computePair(a, j, pair, points);
 					  datColor = edgeColor.get(pair);
-					  if(datColor.equals("blue")){
+					  if(datColor.equalsIgnoreCase("blue")){
 						edgeColor.replace(pair,"green");
 						 updatedAnEdge = true;
 					  }
@@ -851,20 +1060,36 @@ public class MyClient {
 							  
 							  String theirColor = edgeColor.get(pair);
 							  
-							  if(theirColor.equals("yellow")){
+							  if(theirColor.equalsIgnoreCase("yellow")){
 									edgeColor.replace(pair,"red");
 									updatedAnEdge = true;
 							  }
-							  else if(theirColor.equals("cyan")){
+							  else if(theirColor.equalsIgnoreCase("cyan")){
 								  
 								  edgeColor.replace(pair,"orange");
 									updatedAnEdge = true;
 								  
 							  }
-							  else if(theirColor.equals("blue") || theirColor.equals("green")){
+							  else if(theirColor.equalsIgnoreCase("blue") || theirColor.equalsIgnoreCase("green")){
 								  
 								  //System.out.println("REJECTION BRUH");
-								  return false;
+									if(flippedEdge == null)
+										return false;
+									else if(edgeColor.get(flippedEdge).equals("RED")){
+										edgeColorCopy.replace(flippedEdge,"green");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else if(edgeColor.get(flippedEdge).equals("GREEN")){
+										edgeColorCopy.replace(flippedEdge,"red");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else{
+										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+									}
 								  
 							  }
 							  
@@ -891,34 +1116,50 @@ public class MyClient {
 								
 						  if(mustBeClose(iColor) && mustBeClose(jColor)){
 							  
-							  if(aColor.equals("purple")){
+							  if(aColor.equalsIgnoreCase("purple")){
 								 /* System.out.println("Rejecting: " + points);
 								  System.out.println("Need " + points.get(z) + " to block " + points.get(i) + " and " + points.get(j) + " but blocker needs to be too far from " + points.get(x));
 								  System.exit(1);*/
-								  return false;
+									if(flippedEdge == null)
+										return false;
+									else if(edgeColor.get(flippedEdge).equals("RED")){
+										edgeColorCopy.replace(flippedEdge,"green");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else if(edgeColor.get(flippedEdge).equals("GREEN")){
+										edgeColorCopy.replace(flippedEdge,"red");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+									}
+									else{
+										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+									}
 							  }
-							  else if(aColor.equals("orange")){
+							  else if(aColor.equalsIgnoreCase("orange")){
 								  edgeColor.replace(pair,"red");
 								  updatedAnEdge = true;
 							  }
-							  else if(aColor.equals("cyan")){
+							  else if(aColor.equalsIgnoreCase("cyan")){
 								  edgeColor.replace(pair,"yellow");
 								  updatedAnEdge = true;
 							  }
-							  else if(aColor.equals("blue")){
+							  else if(aColor.equalsIgnoreCase("blue")){
 								  edgeColor.replace(pair,"green");
 								  updatedAnEdge = true;
 							  }
 						  }
 						  
-						  if(aColor.equals("purple")){
+						  if(aColor.equalsIgnoreCase("purple")){
 							  
 								if(mustBeClose(iColor))
 								{
 									pair.clear();
 									computePair(x, j, pair, points);
 									datColor = edgeColor.get(pair);
-									if(!datColor.equals("purple")){
+									if(!datColor.equalsIgnoreCase("purple")){
 										edgeColor.replace(pair,"purple");
 										updatedAnEdge = true;
 									}
@@ -932,9 +1173,25 @@ public class MyClient {
 										String wColor = edgeColor.get(pair);
 										
 										if(mustBeClose(wColor)){
-											return false;
+											if(flippedEdge == null)
+												return false;
+											else if(edgeColor.get(flippedEdge).equals("RED")){
+												edgeColorCopy.replace(flippedEdge,"green");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else if(edgeColor.get(flippedEdge).equals("GREEN")){
+												edgeColorCopy.replace(flippedEdge,"red");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else{
+												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+											}
 										}
-										else if(!wColor.equals("purple")){
+										else if(!wColor.equalsIgnoreCase("purple")){
 											edgeColor.replace(pair,"purple");
 											updatedAnEdge = true;
 										}
@@ -948,7 +1205,7 @@ public class MyClient {
 									pair.clear();
 									computePair(x, i, pair, points);
 									datColor = edgeColor.get(pair);
-									if(!datColor.equals("purple")){
+									if(!datColor.equalsIgnoreCase("purple")){
 										edgeColor.replace(pair,"purple");
 										updatedAnEdge = true;
 									}
@@ -962,9 +1219,25 @@ public class MyClient {
 										String wColor = edgeColor.get(pair);
 										
 										if(mustBeClose(wColor)){
-											return false;
+											if(flippedEdge == null)
+												return false;
+											else if(edgeColor.get(flippedEdge).equals("RED")){
+												edgeColorCopy.replace(flippedEdge,"green");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else if(edgeColor.get(flippedEdge).equals("GREEN")){
+												edgeColorCopy.replace(flippedEdge,"red");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else{
+												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+											}
 										}
-										else if(!wColor.equals("purple")){
+										else if(!wColor.equalsIgnoreCase("purple")){
 											edgeColor.replace(pair,"purple");
 											updatedAnEdge = true;
 										}
@@ -972,6 +1245,77 @@ public class MyClient {
 										w++;
 										if(w == points.size()) w=0;
 									}
+								}
+								else{
+									
+									//All three of i, j, and a are outside of x's disk.
+									//System.out.println("We want " + points.get(a) + " to block " + points.get(i) + " and " + points.get(j) + ", and all three of them must be outside " + points.get(x) + "'s disk");
+									
+									int w = j+1;
+									if(w == points.size()) w=0;
+									boolean thereIsPointBetweenJandAinXDisc = false;
+									while(w!=a){
+										
+										pair.clear();
+										computePair(x, w, pair, points);
+										String wColor = edgeColor.get(pair);
+										
+										if(mustBeClose(wColor)){
+											thereIsPointBetweenJandAinXDisc = true;
+											break;
+										}
+										
+										
+										w++;
+										if(w == points.size()) w=0;
+										
+									}
+									
+									w = a+1;
+									if(w== points.size()) w=0;
+									boolean thereIsPointBetweenIandAinXDisc = false;
+									while(w!=i){
+										
+										pair.clear();
+										computePair(x, w, pair, points);
+										String wColor = edgeColor.get(pair);
+										
+										if(mustBeClose(wColor)){
+											thereIsPointBetweenIandAinXDisc = true;
+											break;
+											
+										}
+										
+										w++;
+										if(w == points.size()) w=0;
+									}
+									
+									
+									if(thereIsPointBetweenJandAinXDisc && thereIsPointBetweenIandAinXDisc){
+										
+										if(flippedEdge == null)//System.out.println("REJECTION BRAH");
+												{ return false; }
+											else if(edgeColor.get(flippedEdge).equals("RED")){
+												edgeColorCopy.replace(flippedEdge,"green");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else if(edgeColor.get(flippedEdge).equals("GREEN")){
+												edgeColorCopy.replace(flippedEdge,"red");
+												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+												updatedAnEdge = true;
+												flippedEdge = null;
+											}
+											else{
+												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+											}
+										
+									}
+									
+									
+									
+									
 								}
 					
 							  
@@ -992,7 +1336,76 @@ public class MyClient {
 		  
 	  }
 	  
+	  
+	  if(!updatedAnEdge){
+		  
+		  if(!inFlippingPhase){
+			  
+			 edgeColorCopy = new HashMap<ArrayList<String>, String>(edgeColor);
+				inFlippingPhase = true;
+			  
+		  }
+		  else if(flippedEdge==null){
+			  
+			  for(Map.Entry<ArrayList<String>, String> entry: edgeColor.entrySet()) {
+				  
+				  ArrayList<String> datPair = entry.getKey();
+				  String datColor = edgeColorCopy.get(datPair);
+				  
+				  if(datColor.equals("YELLOW")){
+					  edgeColorCopy.replace(datPair,"yellow");
+				  }
+			  }
+			  
+			  edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+			  
+		  }
+		  
+		  //yellow = we haven't tried flipping it yet.
+		  //RED = it was a yellow edge and we temporarily flipped it to red.
+		  //GREEN = it was a yellow edge and we temporarily flipped it to green.
+		  //YELLOW = both red and green were acceptable.
+		  ArrayList<ArrayList<String>> yellowEdgesConnectingGuards = new ArrayList<ArrayList<String>>();
+		  for(Map.Entry<ArrayList<String>, String> entry: edgeColor.entrySet()) {
+
+			ArrayList<String> datPair = entry.getKey();
+			
+			if(datPair.get(0).length() == 1 && datPair.get(1).length() == 1){
+				String datColor = edgeColor.get(datPair);
+				if(datColor.equals("yellow")) {
+					edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+					edgeColor.replace(datPair, "RED");
+					updatedAnEdge = true;
+					flippedEdge = new ArrayList<String>(datPair);
+					break;
+					
+				}
+				else if(datColor.equals("RED")){
+					edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+					edgeColor.replace(datPair, "GREEN");
+					updatedAnEdge = true;
+					flippedEdge = new ArrayList<String>(datPair);
+					break;
+				}
+				else if(datColor.equals("GREEN")){
+					edgeColorCopy.replace(datPair, "YELLOW");
+					edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+					
+					flippedEdge = null;
+				}
+				
+			}
+		}
+		  
+		  
+		  
+	  }
+	  
+	  
+	  
     } while (updatedAnEdge);
+	
+	
 
 	
 	
@@ -1002,75 +1415,129 @@ public class MyClient {
   
   public static boolean mustBeClose(String color){
 	  
-	  return color.equals("green") || color.equals("yellow") || color.equals("red");
+	  return color.equalsIgnoreCase("green") || color.equalsIgnoreCase("yellow") || color.equalsIgnoreCase("red");
+  }
+  
+  public static boolean cannotBlock(String color){
+	  
+	  return color.equalsIgnoreCase("green") || color.equalsIgnoreCase("blue") || color.equalsIgnoreCase("purple");
   }
 
   public static class RunIt extends Thread {
-
-    public void run() {
-      try {
-        // Administrative stuff to connect with the server.
-        BufferedReader in;
-        PrintWriter out;
-
-        // We are connecting on port 9450.
-        String serverAddress = "52.203.213.88";
-        Socket socket = new Socket(serverAddress, 9450);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
-
-        while (true) {
-          String nextCase = in.readLine();
-          if (nextCase.equals("STOP")) {
-            System.out.println("something got wrecked, check server");
-            return;
-          }
-          if (nextCase.equals("FINISHED")) {
-            System.out.println("no additional cases left to work on for this thread");
-			moreThreads = false;
-            return;
-          }
-          int firstComma = nextCase.indexOf(',');
-          String caseNumber = nextCase.substring(0, firstComma);
-          String fileStuff = nextCase.substring(firstComma + 1);
-
-          // nextCase == "1,ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
-          // caseNumber == "1"
-          // fileStuff == "ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
-          /*
-           * case1.txt: ACEG BDFH ADEH ABEF BCFG CDGH A B C D E F G H
-           */
-          String[] arr = fileStuff.split(",");
-          ArrayList<String> ordering = new ArrayList<String>();
-          for (String item : arr) {
-            ordering.add(item);
-          }
-          System.out.println("working on case " + nextCase);
-
-          String result = determineCase(ordering);
-          if (!result.equals("")) {
-            result = result.replace(" ", "");  //gtfo spaces
-            result = result.substring(1, result.length()-1);  //gtfo braces
-            System.out.println("Case accepted. \n" + result + "\n"); //ordering on own line
-            out.println(result);
-          } else {
-            System.out.println("Case rejected (which is what we want).\n");
-			System.out.flush();
-            out.println("S");
-          }
-          // case was done successfully, tell server about it
-          // DONE SOLVING THE CASE
-
-          // assuming the case completed successfully, write back S
-          // if the case failed, output anything but S
-
-          System.out.println("solved case " + nextCase);
-		  System.out.flush();
+        
+        public void run() {
+            try {
+                // Administrative stuff to connect with the server.                
+                // We are connecting on port 9451.
+                String serverAddress = "52.202.254.64";
+                Socket socket = new Socket(serverAddress, 9451);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                out.println("1");  //sending a 1 to denote, I want to start
+                
+                while(true){
+                    String nextCase = in.readLine();
+                    //close socket for now
+                    in.close();
+                    out.close();
+                    socket.close();
+                    if (nextCase.equals("STOP")) {
+                        System.out.println("something got wrecked, check server");
+                        return;
+                    }
+                    if (nextCase.equals("FINISHED")) {
+                        System.out.println("no additional cases left to work on for this thread");
+                        moreThreads = false;
+                        return;
+                    }
+                    int firstComma = nextCase.indexOf(',');
+                    String caseNumber = nextCase.substring(0, firstComma);
+                    String fileStuff = nextCase.substring(firstComma + 1);
+                    
+                    // nextCase == "1,ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
+                    // caseNumber == "1"
+                    // fileStuff == "ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
+                    /*
+                        * case1.txt: ACEG BDFH ADEH ABEF BCFG CDGH A B C D E F G H
+                    */
+                    System.out.println("working on case " + nextCase);
+                    String[] arr = fileStuff.split(",");
+                    ArrayList<String> ordering = new ArrayList<String>();
+                    for (String item : arr) {
+                        ordering.add(item);
+                    }
+                    
+                    int acegIndex = ordering.indexOf("ACEG");
+                    int aIndex = ordering.indexOf("A");
+                    boolean rejected = false;
+                    if(aIndex < acegIndex){                        
+                        System.out.println("Redundant ordering: ACEG is right of A.  Rejecting.");
+                        System.out.flush();
+                        rejected = true;
+                    }
+                    
+                    int bdfhIndex = ordering.indexOf("BDFH");
+                    int eIndex = ordering.indexOf("E");
+                    int fIndex = ordering.indexOf("F");
+                    if(eIndex < bdfhIndex && bdfhIndex < fIndex){
+                        
+                        System.out.println("Redundant ordering: BDFH is between E and F.  Rejecting.");
+                        System.out.flush();
+                        rejected = true;
+                    }
+                    
+                    
+                    int gIndex = ordering.indexOf("G");
+                    int hIndex = ordering.indexOf("H");
+                    if(gIndex < bdfhIndex && bdfhIndex < hIndex){
+                        
+                        System.out.println("Redundant ordering: BDFH is between G and H.  Rejecting.");
+                        System.out.flush();
+                        rejected = true;
+                    }
+                    
+                    String sendMe = "";
+                    if(!rejected){                        
+                        long startTime = System.currentTimeMillis();
+                        String result = determineCase(ordering);
+                        long endTime = System.currentTimeMillis();
+                        
+                        long runningTime = (endTime - startTime)/1000;
+                        
+                        if(!result.equals("")){
+                            result = result.replace(" ", "");  //gtfo spaces
+                            result = result.substring(1, result.length()-1);  //gtfo braces
+                            System.out.println("Case accepted in " + runningTime + " seconds. \n" + result + "\n"); //ordering on own line
+                            sendMe = caseNumber+",";
+                            sendMe += result;
+                        } else{
+                            System.out.println("Case rejected in " + runningTime + " seconds (which is what we want).\n");
+                            System.out.flush();
+                            sendMe = "S"+caseNumber;
+                        }
+                    } else{
+                        //reject case
+                        sendMe = "S"+caseNumber;
+                    }
+                    
+                    socket = new Socket(serverAddress, 9451);
+                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    out = new PrintWriter(socket.getOutputStream(), true);
+                    out.println(sendMe);
+                    
+                    // case was done successfully, tell server about it
+                    // DONE SOLVING THE CASE
+                    
+                    // assuming the case completed successfully, write back S
+                    // if the case failed, output anything but S
+                    
+                    System.out.println("solved case " + nextCase);
+                    System.out.flush();
+                }
+            } catch (Exception e) {
+                System.out.println("Got an exception: " + e);
+                e.printStackTrace();
+            }
         }
-      } catch (Exception e) {
-        System.out.println("Got an exception: " + e);
-		e.printStackTrace();
-      }
     }
-  }
 }
