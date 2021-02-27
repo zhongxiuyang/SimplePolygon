@@ -43,7 +43,10 @@ public class MyClient {
     {
     	ArrayList<String> everyViewpoints = new ArrayList<String>();
 		//String[] allPoints = new String[]{ "ABCEG", "BDCFH", "BDEFH", "ACEFG", "BDFGH", "ABDEG", "ABDFG", "ACDFG", "ABDEH", "ABDFH", "ACDFH", "ABEFH", "ACEFH", "BCEFH", "ABDGH", "ACDGH", "ABEGH", "ACEGH", "BCEGH", "ADEGH", "BDEGH", "ADG", "BEH", "ACF", "BDG", "CEH", "ADF", "CFH", "ACDG", "BDEH", "ACEF", "BDFG", "CEGH", "ADFH", "ABEG", "BCFH" };
-		String[] allPoints = new String[]{"ABC", "ABD", "ACD", "BCD", "ABCD", "ABE", "ACE", "BCE", "ABCE", "ADE", "BDE", "ABDE", "CDE", "ACDE", "BCDE", "ABCDE", "ABF", "ACF", "BCF", "ABCF", "ADF", "BDF", "ABDF", "CDF", "ACDF", "BCDF", "ABCDF", "AEF", "BEF", "ABEF", "CEF", "ACEF", "BCEF", "ABCEF", "DEF", "ADEF", "BDEF", "ABDEF", "CDEF", "ACDEF", "BCDEF", "ABCDEF", "ABG", "ACG", "BCG", "ABCG", "ADG", "BDG", "ABDG", "CDG", "ACDG", "BCDG", "ABCDG", "AEG", "BEG", "ABEG", "CEG", "ACEG", "BCEG", "ABCEG", "DEG", "ADEG", "BDEG", "ABDEG", "CDEG", "ACDEG", "BCDEG", "ABCDEG", "AFG", "BFG", "ABFG", "CFG", "ACFG", "BCFG", "ABCFG", "DFG", "ADFG", "BDFG", "ABDFG", "CDFG", "ACDFG", "BCDFG", "ABCDFG", "EFG", "AEFG", "BEFG", "ABEFG", "CEFG", "ACEFG", "BCEFG", "ABCEFG", "DEFG", "ADEFG", "BDEFG", "ABDEFG", "CDEFG", "ACDEFG", "BCDEFG", "ABH", "ACH", "BCH", "ABCH", "ADH", "BDH", "ABDH", "CDH", "ACDH", "BCDH", "ABCDH", "AEH", "BEH", "ABEH", "CEH", "ACEH", "BCEH", "ABCEH", "DEH", "ADEH", "BDEH", "ABDEH", "CDEH", "ACDEH", "BCDEH", "ABCDEH", "AFH", "BFH", "ABFH", "CFH", "ACFH", "BCFH", "ABCFH", "DFH", "ADFH", "BDFH", "ABDFH", "CDFH", "ACDFH", "BCDFH", "ABCDFH", "EFH", "AEFH", "BEFH", "ABEFH", "CEFH", "ACEFH", "BCEFH", "ABCEFH", "DEFH", "ADEFH", "BDEFH", "ABDEFH", "CDEFH", "ACDEFH", "BCDEFH", "AGH", "BGH", "ABGH", "CGH", "ACGH", "BCGH", "ABCGH", "DGH", "ADGH", "BDGH", "ABDGH", "CDGH", "ACDGH", "BCDGH", "ABCDGH", "EGH", "AEGH", "BEGH", "ABEGH", "CEGH", "ACEGH", "BCEGH", "ABCEGH", "DEGH", "ADEGH", "BDEGH", "ABDEGH", "CDEGH", "ACDEGH", "BCDEGH", "FGH", "AFGH", "BFGH", "ABFGH", "CFGH", "ACFGH", "BCFGH", "ABCFGH", "DFGH", "ADFGH", "BDFGH", "ABDFGH", "CDFGH", "ACDFGH", "BCDFGH", "EFGH", "AEFGH", "BEFGH", "ABEFGH", "CEFGH", "ACEFGH", "BCEFGH", "DEFGH", "ADEFGH", "BDEFGH", "CDEFGH"}; 
+		//String[] allPoints = new String[]{"ABC", "ABD", "ACD", "BCD", "ABCD", "ABE", "ACE", "BCE", "ABCE", "ADE", "BDE", "ABDE", "CDE", "ACDE", "BCDE", "ABCDE", "ABF", "ACF", "BCF", "ABCF", "ADF", "BDF", "ABDF", "CDF", "ACDF", "BCDF", "ABCDF", "AEF", "BEF", "ABEF", "CEF", "ACEF", "BCEF", "ABCEF", "DEF", "ADEF", "BDEF", "ABDEF", "CDEF", "ACDEF", "BCDEF", "ABCDEF", "ABG", "ACG", "BCG", "ABCG", "ADG", "BDG", "ABDG", "CDG", "ACDG", "BCDG", "ABCDG", "AEG", "BEG", "ABEG", "CEG", "ACEG", "BCEG", "ABCEG", "DEG", "ADEG", "BDEG", "ABDEG", "CDEG", "ACDEG", "BCDEG", "ABCDEG", "AFG", "BFG", "ABFG", "CFG", "ACFG", "BCFG", "ABCFG", "DFG", "ADFG", "BDFG", "ABDFG", "CDFG", "ACDFG", "BCDFG", "ABCDFG", "EFG", "AEFG", "BEFG", "ABEFG", "CEFG", "ACEFG", "BCEFG", "ABCEFG", "DEFG", "ADEFG", "BDEFG", "ABDEFG", "CDEFG", "ACDEFG", "BCDEFG", "ABH", "ACH", "BCH", "ABCH", "ADH", "BDH", "ABDH", "CDH", "ACDH", "BCDH", "ABCDH", "AEH", "BEH", "ABEH", "CEH", "ACEH", "BCEH", "ABCEH", "DEH", "ADEH", "BDEH", "ABDEH", "CDEH", "ACDEH", "BCDEH", "ABCDEH", "AFH", "BFH", "ABFH", "CFH", "ACFH", "BCFH", "ABCFH", "DFH", "ADFH", "BDFH", "ABDFH", "CDFH", "ACDFH", "BCDFH", "ABCDFH", "EFH", "AEFH", "BEFH", "ABEFH", "CEFH", "ACEFH", "BCEFH", "ABCEFH", "DEFH", "ADEFH", "BDEFH", "ABDEFH", "CDEFH", "ACDEFH", "BCDEFH", "AGH", "BGH", "ABGH", "CGH", "ACGH", "BCGH", "ABCGH", "DGH", "ADGH", "BDGH", "ABDGH", "CDGH", "ACDGH", "BCDGH", "ABCDGH", "EGH", "AEGH", "BEGH", "ABEGH", "CEGH", "ACEGH", "BCEGH", "ABCEGH", "DEGH", "ADEGH", "BDEGH", "ABDEGH", "CDEGH", "ACDEGH", "BCDEGH", "FGH", "AFGH", "BFGH", "ABFGH", "CFGH", "ACFGH", "BCFGH", "ABCFGH", "DFGH", "ADFGH", "BDFGH", "ABDFGH", "CDFGH", "ACDFGH", "BCDFGH", "EFGH", "AEFGH", "BEFGH", "ABEFGH", "CEFGH", "ACEFGH", "BCEFGH", "DEFGH", "ADEFGH", "BDEFGH", "CDEFGH"}; 
+
+    //10 guard starting points: ACEGI, BDFHJ, A
+    String[] allPoints = new String[]{"ACDFHI", "BDEGIJ", "ACEFHJ", "ABDFGI", "BCEGHJ", "ADFI", "BEGJ", "ACFH", "BDGI", "CEHJ"};
 
 		
 		for (String s : allPoints)
@@ -52,10 +55,10 @@ public class MyClient {
 		}
 		ArrayList<String> usableViewpoints = new ArrayList<String>();
 		usableViewpoints = availableViewpoints(ordering, everyViewpoints);
-		int viewPointsToCheck = 40;
-		if (usableViewpoints.size() <= 210 - viewPointsToCheck)
+		//int viewPointsToCheck = 40;
+		if (usableViewpoints.size() <= 0)//allPoints.length - viewPointsToCheck)
 		{
-			System.out.println("We placed " + viewPointsToCheck + " VPs.");//everything. ");
+			System.out.println("We placed all the VPs.");//" + viewPointsToCheck + " VPs.");//everything. ");
 			return ordering.toString();
 		}
 		int optimalViewpointIndex = -1;
@@ -70,6 +73,7 @@ public class MyClient {
 			// int feasibleGaps = 0;
             
             ArrayList<Integer> storedGaps = new ArrayList<Integer>();
+            int numFeasibleGaps = 0;
             // storedGaps.clear();
 			for (int j = 0; j < ordering.size(); ++j)
 			{
@@ -81,6 +85,12 @@ public class MyClient {
 				if (isFeasibleOrdering(newOrdering))
 				{
 					storedGaps.add(j);
+          numFeasibleGaps++;
+
+          if(numFeasibleGaps >+ minGaps){
+            //This already cannot be the optimal point so skip it.
+            break;
+          }
 				}
 			}
             
@@ -1467,21 +1477,21 @@ public class MyClient {
                         ordering.add(item);
                     }
                     
-                    int acegIndex = ordering.indexOf("ACEG");
+                    int acegiIndex = ordering.indexOf("ACEGI");
                     int aIndex = ordering.indexOf("A");
                     boolean rejected = false;
-                    if(aIndex < acegIndex){                        
+                    if(aIndex < acegiIndex){                        
                         System.out.println("Redundant ordering: ACEG is right of A.  Rejecting.");
                         System.out.flush();
                         rejected = true;
                     }
                     
-                    int bdfhIndex = ordering.indexOf("BDFH");
-                    int eIndex = ordering.indexOf("E");
-                    int fIndex = ordering.indexOf("F");
+                    int bdfhjIndex = ordering.indexOf("BDFHJ");
+                    int iIndex = ordering.indexOf("I");
+                    int jIndex = ordering.indexOf("J");
                     if(eIndex < bdfhIndex && bdfhIndex < fIndex){
                         
-                        System.out.println("Redundant ordering: BDFH is between E and F.  Rejecting.");
+                        System.out.println("Redundant ordering: BDFHJ is between I and J.  Rejecting.");
                         System.out.flush();
                         rejected = true;
                     }
@@ -1489,9 +1499,9 @@ public class MyClient {
                     
                     int gIndex = ordering.indexOf("G");
                     int hIndex = ordering.indexOf("H");
-                    if(gIndex < bdfhIndex && bdfhIndex < hIndex){
+                    if(gIndex < bdfhjIndex && bdfhjIndex < hIndex){
                         
-                        System.out.println("Redundant ordering: BDFH is between G and H.  Rejecting.");
+                        System.out.println("Redundant ordering: BDFHJ is between G and H.  Rejecting.");
                         System.out.flush();
                         rejected = true;
                     }
