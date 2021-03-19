@@ -46,7 +46,10 @@ public class MyClient {
 		//String[] allPoints = new String[]{"ABC", "ABD", "ACD", "BCD", "ABCD", "ABE", "ACE", "BCE", "ABCE", "ADE", "BDE", "ABDE", "CDE", "ACDE", "BCDE", "ABCDE", "ABF", "ACF", "BCF", "ABCF", "ADF", "BDF", "ABDF", "CDF", "ACDF", "BCDF", "ABCDF", "AEF", "BEF", "ABEF", "CEF", "ACEF", "BCEF", "ABCEF", "DEF", "ADEF", "BDEF", "ABDEF", "CDEF", "ACDEF", "BCDEF", "ABCDEF", "ABG", "ACG", "BCG", "ABCG", "ADG", "BDG", "ABDG", "CDG", "ACDG", "BCDG", "ABCDG", "AEG", "BEG", "ABEG", "CEG", "ACEG", "BCEG", "ABCEG", "DEG", "ADEG", "BDEG", "ABDEG", "CDEG", "ACDEG", "BCDEG", "ABCDEG", "AFG", "BFG", "ABFG", "CFG", "ACFG", "BCFG", "ABCFG", "DFG", "ADFG", "BDFG", "ABDFG", "CDFG", "ACDFG", "BCDFG", "ABCDFG", "EFG", "AEFG", "BEFG", "ABEFG", "CEFG", "ACEFG", "BCEFG", "ABCEFG", "DEFG", "ADEFG", "BDEFG", "ABDEFG", "CDEFG", "ACDEFG", "BCDEFG", "ABH", "ACH", "BCH", "ABCH", "ADH", "BDH", "ABDH", "CDH", "ACDH", "BCDH", "ABCDH", "AEH", "BEH", "ABEH", "CEH", "ACEH", "BCEH", "ABCEH", "DEH", "ADEH", "BDEH", "ABDEH", "CDEH", "ACDEH", "BCDEH", "ABCDEH", "AFH", "BFH", "ABFH", "CFH", "ACFH", "BCFH", "ABCFH", "DFH", "ADFH", "BDFH", "ABDFH", "CDFH", "ACDFH", "BCDFH", "ABCDFH", "EFH", "AEFH", "BEFH", "ABEFH", "CEFH", "ACEFH", "BCEFH", "ABCEFH", "DEFH", "ADEFH", "BDEFH", "ABDEFH", "CDEFH", "ACDEFH", "BCDEFH", "AGH", "BGH", "ABGH", "CGH", "ACGH", "BCGH", "ABCGH", "DGH", "ADGH", "BDGH", "ABDGH", "CDGH", "ACDGH", "BCDGH", "ABCDGH", "EGH", "AEGH", "BEGH", "ABEGH", "CEGH", "ACEGH", "BCEGH", "ABCEGH", "DEGH", "ADEGH", "BDEGH", "ABDEGH", "CDEGH", "ACDEGH", "BCDEGH", "FGH", "AFGH", "BFGH", "ABFGH", "CFGH", "ACFGH", "BCFGH", "ABCFGH", "DFGH", "ADFGH", "BDFGH", "ABDFGH", "CDFGH", "ACDFGH", "BCDFGH", "EFGH", "AEFGH", "BEFGH", "ABEFGH", "CEFGH", "ACEFGH", "BCEFGH", "DEFGH", "ADEFGH", "BDEFGH", "CDEFGH"}; 
 
     //10 guard starting points: ACEGI, BDFHJ, A
-    String[] allPoints = new String[]{"ACDFHI", "BDEGIJ", "ACEFHJ", "ABDFGI", "BCEGHJ", "ADFI", "BEGJ", "ACFH", "BDGI", "CEHJ"};
+    //String[] allPoints = new String[]{"ACDFHI", "BDEGIJ", "ACEFHJ", "ABDFGI", "BCEGHJ", "ADFI", "BEGJ", "ACFH", "BDGI", "CEHJ"};
+	
+	String[] allPoints = {"ABDFHI", "ADEGHJ", "ABDEHI", "BCEFHI", "BCFGIJ", "BCEFHJ", "BCEGHJ", "BDEGHJ", "BDFGIJ", "ACDGHJ", "ACDFHJ", "ACDFHI", "ABDFGI", "ABDEGI", "ABDEGH", "ABEFHI", "CDFGIJ", "BCEFIJ", "BCEGIJ", "BDEGIJ", "ACDFGJ", "ACDFGI", "ACEGHJ", "ACEFHJ", "ACEFHI", "ABCEGI", "BCDFHJ", "ACDEGI", "BDEFHJ", "ACEFGI", "BDFGHJ", "ACEGHI", "BDEHIJ"};
+
 
 		
 		for (String s : allPoints)
@@ -242,6 +245,7 @@ public class MyClient {
     do {
       ArrayList<String> pair = new ArrayList<String>();
       updatedAnEdge = false;
+	  encircleing:
       for (int i = 0; i < points.size() - 3; i++) {
 		  
 		  int stoppingIndexForL = points.size();
@@ -374,12 +378,14 @@ public class MyClient {
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break encircleing;
 					}
 					else if(edgeColor.get(flippedEdge).equals("GREEN")){
 						edgeColorCopy.replace(flippedEdge,"red");
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break encircleing;
 					}
 					else{
 						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -393,6 +399,7 @@ public class MyClient {
       }//End encircleing 
 	  
 	  //Begin crossing lemma.
+	  crossingLemma:
       for (int i = 0; i < points.size() - 3; i++) {
         for (int k = i + 2; k < points.size() - 1; k++) {
           pair.clear();
@@ -434,12 +441,14 @@ public class MyClient {
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break crossingLemma;
 					}
 					else if(edgeColor.get(flippedEdge).equals("GREEN")){
 						edgeColorCopy.replace(flippedEdge,"red");
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break crossingLemma;
 					}
 					else{
 						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -476,12 +485,14 @@ public class MyClient {
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break crossingLemma;
 					}
 					else if(edgeColor.get(flippedEdge).equals("GREEN")){
 						edgeColorCopy.replace(flippedEdge,"red");
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break crossingLemma;
 					}
 					else{
 						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -610,7 +621,239 @@ public class MyClient {
       }//End Crossing Lemma.
 	  
 	  
+	  //Begin Purple/Green Crossing.
+	  purpleGreenCrossing:
+	  for (int i = 0; i < points.size() - 3; i++) {
+        for (int k = i + 2; k < points.size(); k++) {
+          pair.clear();
+          computePair(i, k, pair, points);
+		  String ikColor = edgeColor.get(pair);
+          if (!ikColor.equalsIgnoreCase("purple")) {
+            continue;
+          }
+          for (int j = i + 1; j < k; j++) {
+			  pair.clear();
+			  computePair(i, j, pair, points);
+			  String ijColor = edgeColor.get(pair);
+			  
+			  pair.clear();
+			  computePair(j, k, pair, points);
+			  String jkColor = edgeColor.get(pair);
+			  
+			  if (!ijColor.equalsIgnoreCase("purple") && !jkColor.equalsIgnoreCase("purple")) {
+				  //If neither is purple, skip this j.
+				continue;
+			  }
+			  
+			  if(ijColor.equalsIgnoreCase("red") || jkColor.equalsIgnoreCase("red")){
+				  //If you already know you have to block, then skip this j.
+				  continue;
+			  }
+			  
+			  
+			  
+            for (int l = (k + 1)%points.size(); l != i; l = (l+1)%points.size()) {
+              pair.clear();
+			  computePair(l, j, pair, points);
+			  String jlColor = edgeColor.get(pair);
+			  
+			  if(!jlColor.equalsIgnoreCase("green"))
+				continue;
+				
+				
+				
+			  pair.clear();
+			  computePair(l, i, pair, points);
+			  String ilColor = edgeColor.get(pair);
+			  
+			  pair.clear();
+			  computePair(l, k, pair, points);
+			  String klColor = edgeColor.get(pair);
+			  
+			  if (!ilColor.equalsIgnoreCase("purple") && !klColor.equalsIgnoreCase("purple")) {
+				  //If neither is purple, skip this l.
+				continue;
+			  }
+			  
+			  if(ilColor.equalsIgnoreCase("red") || klColor.equalsIgnoreCase("red")){
+				  //If you already know you have to block, then skip this l.
+				  continue;
+			  }
+			  
+			  
+			  
+			  if(ijColor.equalsIgnoreCase("purple") && klColor.equalsIgnoreCase("purple")){
+				  
+				  if(cannotBlock(ilColor) || cannotBlock(jkColor)){
+					  //Only consider if we know at least one side cannot be blocked.
+					  
+				  
+				  
+				  //At least one of the other sides cannot be blocked so we
+				  //might be able to change an edge color or reject.
+				  
+				  //System.out.println("i = " + points.get(i));
+				//System.out.println("j = " + points.get(j));
+				//System.out.println("k = " + points.get(k));
+				//System.out.println("l = " + points.get(l));
+				  
+				  int pointInDiscI = -1;
+				  //Is there a point p between j and k that is in i's disk?
+				  for(int p = j+1; p<k; p++){
+					  pair.clear();
+					  computePair(i, p, pair, points);
+					  String ipColor = edgeColor.get(pair);
+					  
+					  if(mustBeClose(ipColor)){
+						  pointInDiscI = p;
+						  break;
+					  }
+				  }
+				  
+				  if(pointInDiscI >= 0){
+					  
+					  for(int p = (l+1)%points.size(); p != i; p = (p+1)%points.size()){
+						  
+							pair.clear();
+							computePair(k, p, pair, points);
+							String kpColor = edgeColor.get(pair);
+							
+							if(mustBeClose(kpColor)){
+								
+								if(cannotBlock(ilColor) && cannotBlock(jkColor)){
+									//System.out.println("REJECTION!!!");
+									if(flippedEdge == null)
+										return false;
+									else if(edgeColor.get(flippedEdge).equals("RED")){
+										edgeColorCopy.replace(flippedEdge,"green");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+										break purpleGreenCrossing;
+									}
+									else if(edgeColor.get(flippedEdge).equals("GREEN")){
+										edgeColorCopy.replace(flippedEdge,"red");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+										break purpleGreenCrossing;
+									}
+									else{
+										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+									}
+								}
+								else if(cannotBlock(ilColor)){
+									//System.out.println("Flipping j-k edge to red.");								
+									pair.clear();
+									computePair(k, j, pair, points);
+									edgeColor.replace(pair,"red");
+									updatedAnEdge = true;
+								}
+								else{
+									//System.out.println("Flipping i-l edge to red.");
+									pair.clear();
+									computePair(i, l, pair, points);
+									edgeColor.replace(pair,"red");
+									updatedAnEdge = true;
+								}
+								
+								break;
+							}
+						}
+					  }
+					  
+				  }
+				  
+			  }
+			  
+			  if(ilColor.equalsIgnoreCase("purple") && jkColor.equalsIgnoreCase("purple")){
+				  
+				  if(!cannotBlock(ijColor) && !cannotBlock(klColor)){
+					  //Both sides could potentially be blocked so don't mess with it.
+					  continue;
+				  }
+				  
+				  int pointInDiscI = -1;
+				  //Is there a point p between j and k that is in i's disk?
+				  for(int p = (k+1)%points.size(); p!=l; p = (p+1)%points.size()){
+					  pair.clear();
+					  computePair(i, p, pair, points);
+					  String ipColor = edgeColor.get(pair);
+					  
+					  if(mustBeClose(ipColor)){
+						  pointInDiscI = p;
+						  break;
+					  }
+				  }
+				  
+				  if(pointInDiscI >= 0){
+					  
+					  for(int p = i+1; p < j; p++){
+						  
+							pair.clear();
+							computePair(k, p, pair, points);
+							String kpColor = edgeColor.get(pair);
+							
+							if(mustBeClose(kpColor)){
+								
+								if(cannotBlock(ijColor) && cannotBlock(klColor)){
+								
+									//System.out.println("REJECTION!!!");
+									if(flippedEdge == null)
+										return false;
+									else if(edgeColor.get(flippedEdge).equals("RED")){
+										edgeColorCopy.replace(flippedEdge,"green");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+										break purpleGreenCrossing;
+									}
+									else if(edgeColor.get(flippedEdge).equals("GREEN")){
+										edgeColorCopy.replace(flippedEdge,"red");
+										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
+										updatedAnEdge = true;
+										flippedEdge = null;
+										break purpleGreenCrossing;
+									}
+									else{
+										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
+									}
+								}
+								else if(cannotBlock(ijColor)){
+									
+									//System.out.println("Flipping k-l edge to red");
+									pair.clear();
+									computePair(k, l, pair, points);
+									edgeColor.replace(pair,"red");
+									updatedAnEdge = true;
+								}
+								else{
+									//System.out.println("Flipping i-j edge to red");
+									pair.clear();
+									computePair(i, j, pair, points);
+									edgeColor.replace(pair,"red");
+									updatedAnEdge = true;
+								}
+								
+							}
+						  
+					  }
+					  
+				  }
+				  
+			  }
+			  
+			}
+		  }
+		  
+		}
+		
+	  }
+	  //End green/purple crossing
+	  
+	  
 	  //Begin find a blocker, bruh.
+	  findABlocker:
 	  for(int i=0; i<points.size(); i++){
 		  
 		  for(int j=i+2; j<points.size(); j++){
@@ -730,12 +973,14 @@ public class MyClient {
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break findABlocker;
 					}
 					else if(edgeColor.get(flippedEdge).equals("GREEN")){
 						edgeColorCopy.replace(flippedEdge,"red");
 						edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 						updatedAnEdge = true;
 						flippedEdge = null;
+						break findABlocker;
 					}
 					else{
 						System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -798,12 +1043,14 @@ public class MyClient {
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else if(edgeColor.get(flippedEdge).equals("GREEN")){
 										edgeColorCopy.replace(flippedEdge,"red");
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else{
 										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -847,12 +1094,14 @@ public class MyClient {
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else if(edgeColor.get(flippedEdge).equals("GREEN")){
 										edgeColorCopy.replace(flippedEdge,"red");
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else{
 										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -898,12 +1147,14 @@ public class MyClient {
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else if(edgeColor.get(flippedEdge).equals("GREEN")){
 												edgeColorCopy.replace(flippedEdge,"red");
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else{
 												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -940,12 +1191,14 @@ public class MyClient {
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else if(edgeColor.get(flippedEdge).equals("GREEN")){
 												edgeColorCopy.replace(flippedEdge,"red");
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else{
 												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -1009,12 +1262,14 @@ public class MyClient {
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else if(edgeColor.get(flippedEdge).equals("GREEN")){
 												edgeColorCopy.replace(flippedEdge,"red");
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else{
 												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -1035,6 +1290,22 @@ public class MyClient {
 				  }
 				  else{
 					  //TO DO LATER BRAH
+					  
+					  //Every point x \in [i,z) must be red to every point w \in (y,j].
+					  for(int x = i; x<z; x++){
+					  
+						  for(int w = y+1; w<=j; w++){
+							pair.clear();
+							computePair(w, x, pair, points);
+							String xwColor = edgeColor.get(pair);
+							
+							if(!xwColor.equalsIgnoreCase("red")){
+								//System.out.println("Erik flip: " + points.get(x) + " and " + points.get(w));
+								edgeColor.replace(pair,"red");
+								updatedAnEdge = true;
+							}
+						  }
+					  }
 					  
 				  }
 				  
@@ -1090,12 +1361,14 @@ public class MyClient {
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else if(edgeColor.get(flippedEdge).equals("GREEN")){
 										edgeColorCopy.replace(flippedEdge,"red");
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else{
 										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -1137,12 +1410,14 @@ public class MyClient {
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else if(edgeColor.get(flippedEdge).equals("GREEN")){
 										edgeColorCopy.replace(flippedEdge,"red");
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 										updatedAnEdge = true;
 										flippedEdge = null;
+										break findABlocker;
 									}
 									else{
 										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -1190,12 +1465,14 @@ public class MyClient {
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else if(edgeColor.get(flippedEdge).equals("GREEN")){
 												edgeColorCopy.replace(flippedEdge,"red");
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else{
 												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -1236,12 +1513,14 @@ public class MyClient {
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else if(edgeColor.get(flippedEdge).equals("GREEN")){
 												edgeColorCopy.replace(flippedEdge,"red");
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else{
 												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -1310,12 +1589,14 @@ public class MyClient {
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else if(edgeColor.get(flippedEdge).equals("GREEN")){
 												edgeColorCopy.replace(flippedEdge,"red");
 												edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
 												updatedAnEdge = true;
 												flippedEdge = null;
+												break findABlocker;
 											}
 											else{
 												System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
@@ -1338,6 +1619,21 @@ public class MyClient {
 			  else{
 				  
 				  //TO DO LATER BRAH
+				  //Every point x \in [j,a) must be red to every point w \in (b,i].
+					  for(int x = j; x!=a; x = (x+1)%points.size()){
+					  
+						  for(int w = (b+1)%points.size(); w!=i+1; w = (w+1)%points.size()){
+							pair.clear();
+							computePair(w, x, pair, points);
+							String xwColor = edgeColor.get(pair);
+							
+							if(!xwColor.equalsIgnoreCase("red")){
+								//System.out.println("Erik flip: " + points.get(x) + " and " + points.get(w));
+								edgeColor.replace(pair,"red");
+								updatedAnEdge = true;
+							}
+						  }
+					  }
 			  }
 			  
 			  
@@ -1436,6 +1732,32 @@ public class MyClient {
   public static class RunIt extends Thread {
         
         public void run() {
+			/*String fileStuff = "A,B,C,D,E,F,G,H,I,J";
+			String[] arr = fileStuff.split(",");
+             ArrayList<String> ordering = new ArrayList<String>();
+            for (String item : arr) {
+                ordering.add(item);
+            }
+			
+			long startTime = System.currentTimeMillis();
+                        String result = determineCase(ordering);
+                        long endTime = System.currentTimeMillis();
+                        
+                        long runningTime = (endTime - startTime)/1000;
+                        
+                        if(!result.equals("")){
+                            result = result.replace(" ", "");  //gtfo spaces
+                            result = result.substring(1, result.length()-1);  //gtfo braces
+                            System.out.println("Case accepted in " + runningTime + " seconds. \n" + result + "\n"); //ordering on own line
+                            //sendMe = caseNumber+",";
+                            //sendMe += result;
+                        } else{
+                            System.out.println("Case rejected in " + runningTime + " seconds (which is what we want).\n");
+                            System.out.flush();
+                           // sendMe = "S"+caseNumber;
+                        }*/
+			
+					
             try {
                 // Administrative stuff to connect with the server.                
                 // We are connecting on port 9451.
@@ -1467,9 +1789,9 @@ public class MyClient {
                     // nextCase == "1,ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
                     // caseNumber == "1"
                     // fileStuff == "ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
-                    /*
-                        * case1.txt: ACEG BDFH ADEH ABEF BCFG CDGH A B C D E F G H
-                    */
+                    
+                     //   * case1.txt: ACEG BDFH ADEH ABEF BCFG CDGH A B C D E F G H
+                    
                     System.out.println("working on case " + nextCase);
                     String[] arr = fileStuff.split(",");
                     ArrayList<String> ordering = new ArrayList<String>();
