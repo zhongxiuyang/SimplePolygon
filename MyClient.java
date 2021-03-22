@@ -48,7 +48,8 @@ public class MyClient {
     //10 guard starting points: ACEGI, BDFHJ, A
     //String[] allPoints = new String[]{"ACDFHI", "BDEGIJ", "ACEFHJ", "ABDFGI", "BCEGHJ", "ADFI", "BEGJ", "ACFH", "BDGI", "CEHJ"};
 	
-	String[] allPoints = {"ABDFHI", "ADEGHJ", "ABDEHI", "BCEFHI", "BCFGIJ", "BCEFHJ", "BCEGHJ", "BDEGHJ", "BDFGIJ", "ACDGHJ", "ACDFHJ", "ACDFHI", "ABDFGI", "ABDEGI", "ABDEGH", "ABEFHI", "CDFGIJ", "BCEFIJ", "BCEGIJ", "BDEGIJ", "ACDFGJ", "ACDFGI", "ACEGHJ", "ACEFHJ", "ACEFHI", "ABCEGI", "BCDFHJ", "ACDEGI", "BDEFHJ", "ACEFGI", "BDFGHJ", "ACEGHI", "BDEHIJ"};
+	String[] allPoints = {"ADEGH", "ABDEH", "BCEFH", "BCFG", "BCEGH", "BDEGH", "BDFG", "ACDGH", "ACDFH", "ABDFG", "ABDEG", "ABDEGH", "ABEFH", "CDFG", "BCEF", "BCEG", "BDEG", "ACDFG", "ACEFH", "ABCEG", "BCDFH", "ACDEG", "BDEFH", "ACEFG", "BDFGH", "ACEGH", "ABDFH", "ABCDFG", "BCDEGH", "ACDEFH", "ABDEFG", "BCEFGH",
+	"ADEGHI", "ABDEHI", "BCEFHI", "BCFGI", "BCEGHI", "BDEGHI", "BDFGI", "ACDGHI", "ACDFHI", "ABDFGI", "ABDEGI", "ABDEGHI", "ABEFHI", "CDFGI", "BCEFI", "BCEGI", "BDEGI", "ACDFGI", "ACEFHI", "ABCEGI", "BCDFHI", "ACDEGI", "BDEFHI", "ACEFGI", "BDFGHI", "ACEGHI", "ABDFHI", "ABCDFGI", "BCDEGHI", "ACDEFHI", "ABDEFGI", "BCEFGHI"};
 
 
 		
@@ -1799,21 +1800,21 @@ public class MyClient {
                         ordering.add(item);
                     }
                     
-                    int acegiIndex = ordering.indexOf("ACEGI");
+                    int acegIndex = ordering.indexOf("ACEG");
                     int aIndex = ordering.indexOf("A");
                     boolean rejected = false;
-                    if(aIndex < acegiIndex){                        
+                    /*if(aIndex < acegIndex){                        
                         System.out.println("Redundant ordering: ACEG is right of A.  Rejecting.");
                         System.out.flush();
                         rejected = true;
                     }
                     
-                    int bdfhjIndex = ordering.indexOf("BDFHJ");
-                    int iIndex = ordering.indexOf("I");
-                    int jIndex = ordering.indexOf("J");
+                    int bdfhIndex = ordering.indexOf("BDFH");
+                    int eIndex = ordering.indexOf("E");
+                    int fIndex = ordering.indexOf("F");
                     if(eIndex < bdfhIndex && bdfhIndex < fIndex){
                         
-                        System.out.println("Redundant ordering: BDFHJ is between I and J.  Rejecting.");
+                        System.out.println("Redundant ordering: BDFH is between E and F.  Rejecting.");
                         System.out.flush();
                         rejected = true;
                     }
@@ -1821,12 +1822,12 @@ public class MyClient {
                     
                     int gIndex = ordering.indexOf("G");
                     int hIndex = ordering.indexOf("H");
-                    if(gIndex < bdfhjIndex && bdfhjIndex < hIndex){
+                    if(gIndex < bdfhIndex && bdfhIndex < hIndex){
                         
-                        System.out.println("Redundant ordering: BDFHJ is between G and H.  Rejecting.");
+                        System.out.println("Redundant ordering: BDFH is between G and H.  Rejecting.");
                         System.out.flush();
                         rejected = true;
-                    }
+                    }*/
                     
                     String sendMe = "";
                     if(!rejected){                        
