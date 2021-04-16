@@ -48,9 +48,8 @@ public class MyClient {
     //10 guard starting points: ACEGI, BDFHJ, A
     //String[] allPoints = new String[]{"ACDFHI", "BDEGIJ", "ACEFHJ", "ABDFGI", "BCEGHJ", "ADFI", "BEGJ", "ACFH", "BDGI", "CEHJ"};
 	
-	String[] allPoints = {"ADEGH", "ABDEH", "BCEFH", "BCFG", "BCEGH", "BDEGH", "BDFG", "ACDGH", "ACDFH", "ABDFG", "ABDEG", "ABDEGH", "ABEFH", "CDFG", "BCEF", "BCEG", "BDEG", "ACDFG", "ACEFH", "ABCEG", "BCDFH", "ACDEG", "BDEFH", "ACEFG", "BDFGH", "ACEGH", "ABDFH", "ABCDFG", "BCDEGH", "ACDEFH", "ABDEFG", "BCEFGH",
-	"ADEGHI", "ABDEHI", "BCEFHI", "BCFGI", "BCEGHI", "BDEGHI", "BDFGI", "ACDGHI", "ACDFHI", "ABDFGI", "ABDEGI", "ABDEGHI", "ABEFHI", "CDFGI", "BCEFI", "BCEGI", "BDEGI", "ACDFGI", "ACEFHI", "ABCEGI", "BCDFHI", "ACDEGI", "BDEFHI", "ACEFGI", "BDFGHI", "ACEGHI", "ABDFHI", "ABCDFGI", "BCDEGHI", "ACDEFHI", "ABDEFGI", "BCEFGHI"};
-
+	//String[] allPoints = {"ADEGH", "ABDEH", "BCEFH", "BCFG", "BCEGH", "BDEGH", "BDFG", "ACDGH", "ACDFH", "ABDFG", "ABDEG", "ABDEGH", "ABEFH", "CDFG", "BCEF", "BCEG", "BDEG", "ACDFG", "ACEFH", "ABCEG", "BCDFH", "ACDEG", "BDEFH", "ACEFG", "BDFGH", "ACEGH", "ABDFH", "ABCDFG", "BCDEGH", "ACDEFH", "ABDEFG", "BCEFGH",	"ADEGHI", "ABDEHI", "BCEFHI", "BCFGI", "BCEGHI", "BDEGHI", "BDFGI", "ACDGHI", "ACDFHI", "ABDFGI", "ABDEGI", "ABDEGHI", "ABEFHI", "CDFGI", "BCEFI", "BCEGI", "BDEGI", "ACDFGI", "ACEFHI", "ABCEGI", "BCDFHI", "ACDEGI", "BDEFHI", "ACEFGI", "BDFGHI", "ACEGHI", "ABDFHI", "ABCDFGI", "BCDEGHI", "ACDEFHI", "ABDEFGI", "BCEFGHI"};
+	String[] allPoints = {"ABCDEGH","BCDEFHI","ACDEFGI","ABDEFGH","BCEFGHI","ACDFGHI","ABDEGHI","ABCEFHI", "ABCDFGI","ABDFH","BCEGI","ACDFH","BDEGI", "ACEFH","BDFGI","ACEGH","ABDEGH","BCEFHI","ACDFGI","ADG","BEH","CFI","ABEG","BCFH","CDGI","ADEH","BEFI","ACFG","BDGH","CEHI","ADFI","ABCDFH","BCDEGI","ACDEFH","BDEFGI","ACEFGH","BDFGHI","ACEGHI","ABDFHI","ABCEGI","ABCEH","BCDFI","ACDEG","BDEFH","CEFGI","ADFGH","BEGHI","ACFHI","ABDGI", "ABCFGH","BCDGHI","ACDEHI","ABDEFI","ABCEFG","BCDFGH","CDEGHI","ADEFHI","ABEFGI" };
 
 		
 		for (String s : allPoints)
@@ -658,7 +657,7 @@ public class MyClient {
 			  computePair(l, j, pair, points);
 			  String jlColor = edgeColor.get(pair);
 			  
-			  if(!jlColor.equalsIgnoreCase("green"))
+			  if(!jlColor.equalsIgnoreCase("green") && !jlColor.equalsIgnoreCase("blue"))
 				continue;
 				
 				
@@ -711,20 +710,31 @@ public class MyClient {
 					  }
 				  }
 				  
-				  if(pointInDiscI >= 0){
+				  int pointInDiscK = -1;
 					  
-					  for(int p = (l+1)%points.size(); p != i; p = (p+1)%points.size()){
-						  
-							pair.clear();
-							computePair(k, p, pair, points);
-							String kpColor = edgeColor.get(pair);
+				  for(int p = (l+1)%points.size(); p != i; p = (p+1)%points.size()){
+					  
+						pair.clear();
+						computePair(k, p, pair, points);
+						String kpColor = edgeColor.get(pair);
+						
+						if(mustBeClose(kpColor)){
+							pointInDiscK = p;
+							break;
+						}
+					}
+					
+					if(pointInDiscI >= 0 && pointInDiscK >= 0){
+						
+						if(cannotBlock(ilColor) && cannotBlock(jkColor)){
 							
-							if(mustBeClose(kpColor)){
+							if(jlColor.equalsIgnoreCase("green")){
 								
-								if(cannotBlock(ilColor) && cannotBlock(jkColor)){
-									//System.out.println("REJECTION!!!");
-									if(flippedEdge == null)
+								if(flippedEdge == null){
+										//System.out.println("REJECTION!!!");
 										return false;
+										
+								}
 									else if(edgeColor.get(flippedEdge).equals("RED")){
 										edgeColorCopy.replace(flippedEdge,"green");
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
@@ -742,26 +752,78 @@ public class MyClient {
 									else{
 										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
 									}
-								}
-								else if(cannotBlock(ilColor)){
-									//System.out.println("Flipping j-k edge to red.");								
-									pair.clear();
-									computePair(k, j, pair, points);
-									edgeColor.replace(pair,"red");
-									updatedAnEdge = true;
-								}
-								else{
-									//System.out.println("Flipping i-l edge to red.");
-									pair.clear();
-									computePair(i, l, pair, points);
-									edgeColor.replace(pair,"red");
-									updatedAnEdge = true;
-								}
+							}
+							else{
 								
-								break;
+								
+								pair.clear();
+								computePair(j, l, pair, points);
+								edgeColor.replace(pair,"purple");
+								updatedAnEdge = true;
+								
 							}
 						}
+						else if(cannotBlock(ilColor)){
+							
+							pair.clear();
+							computePair(k, j, pair, points);
+							edgeColor.replace(pair,"red");
+							updatedAnEdge = true;
+						}
+						else{
+						
+							pair.clear();
+							computePair(i, l, pair, points);
+							edgeColor.replace(pair,"red");
+							updatedAnEdge = true;
+							
+						}
+						
+					}
+					else if(pointInDiscI >= 0 && cannotBlock(jkColor) && cannotBlock(ilColor)){
+						
+						//Every point between l and i must bee too far from k.
+						/*System.out.println("Every point between l and i must be too far from k.");
+						System.out.println("i = " + points.get(i));
+						System.out.println("j = " + points.get(j));
+						System.out.println("k = " + points.get(k));
+						System.out.println("l = " + points.get(l));	*/
+
+						for(int p = (l+1)%points.size(); p != i; p = (p+1)%points.size()){
+					  
+							pair.clear();
+							computePair(k, p, pair, points);
+							String kpColor = edgeColor.get(pair);
+							
+							if(!kpColor.equalsIgnoreCase("purple")){
+								edgeColor.replace(pair,"purple");
+								updatedAnEdge = true;
+								//System.out.println("Flipped " + points.get(k) + "-" + points.get(p) + " edge to purple.");
+							}
+						}						
+						
+					}
+					else if(pointInDiscK >= 0 && cannotBlock(jkColor) && cannotBlock(ilColor)){
+						/*System.out.println("Every point between j and k must be too far from i.");
+						System.out.println("i = " + points.get(i));
+						System.out.println("j = " + points.get(j));
+						System.out.println("k = " + points.get(k));
+						System.out.println("l = " + points.get(l));	*/
+						
+						for(int p = j+1; p<k; p++){
+						  pair.clear();
+						  computePair(i, p, pair, points);
+						  String ipColor = edgeColor.get(pair);
+						  
+						  if(!ipColor.equalsIgnoreCase("purple")){
+							  edgeColor.replace(pair,"purple");
+							  updatedAnEdge = true;
+							  //System.out.println("Flipped " + points.get(i) + "-" + points.get(p) + " edge to purple.");
+						  }
 					  }
+						
+					}
+					  
 					  
 				  }
 				  
@@ -787,21 +849,34 @@ public class MyClient {
 					  }
 				  }
 				  
-				  if(pointInDiscI >= 0){
+				  
+					int pointInDiscK = -1;
+				  for(int p = i+1; p < j; p++){
 					  
-					  for(int p = i+1; p < j; p++){
-						  
-							pair.clear();
-							computePair(k, p, pair, points);
-							String kpColor = edgeColor.get(pair);
+						pair.clear();
+						computePair(k, p, pair, points);
+						String kpColor = edgeColor.get(pair);
+						
+						if(mustBeClose(kpColor)){
+							pointInDiscK = p;
 							
-							if(mustBeClose(kpColor)){
-								
-								if(cannotBlock(ijColor) && cannotBlock(klColor)){
-								
-									//System.out.println("REJECTION!!!");
-									if(flippedEdge == null)
+							break;
+							
+						}
+					  
+				  }
+				  
+				  if(pointInDiscI >= 0 && pointInDiscK >=0){
+					  
+					if(cannotBlock(ijColor) && cannotBlock(klColor)){
+							
+						if(jlColor.equalsIgnoreCase("green")){
+								//System.out.println("REJECTION!!!");
+								if(flippedEdge == null){
+										//System.out.println("REJECTION!!!");
 										return false;
+										//return null;
+								}
 									else if(edgeColor.get(flippedEdge).equals("RED")){
 										edgeColorCopy.replace(flippedEdge,"green");
 										edgeColor = new HashMap<ArrayList<String>, String>(edgeColorCopy);
@@ -819,28 +894,81 @@ public class MyClient {
 									else{
 										System.out.println("Uhhhhh.....wat.  " + edgeColor + " is " + edgeColor.get(flippedEdge));
 									}
-								}
-								else if(cannotBlock(ijColor)){
-									
-									//System.out.println("Flipping k-l edge to red");
-									pair.clear();
-									computePair(k, l, pair, points);
-									edgeColor.replace(pair,"red");
-									updatedAnEdge = true;
-								}
-								else{
-									//System.out.println("Flipping i-j edge to red");
-									pair.clear();
-									computePair(i, j, pair, points);
-									edgeColor.replace(pair,"red");
-									updatedAnEdge = true;
-								}
+							}
+							else{
+								
+								pair.clear();
+								computePair(j, l, pair, points);
+								edgeColor.replace(pair,"purple");
+								updatedAnEdge = true;
 								
 							}
+					}
+					else if(cannotBlock(ijColor)){
+						
+			
+						pair.clear();
+						computePair(k, l, pair, points);
+						edgeColor.replace(pair,"red");
+						updatedAnEdge = true;
+					}
+					else{
+						
+						
+						pair.clear();
+						computePair(i, j, pair, points);
+						edgeColor.replace(pair,"red");
+						updatedAnEdge = true;
+					}
+					
+				  }
+				  else if(cannotBlock(ijColor) && cannotBlock(klColor) && pointInDiscI >= 0){
+					  
+					  /*System.out.println("Every point between i and j must be too far from k.");
+					  System.out.println("i = " + points.get(i));
+					  System.out.println("j = " + points.get(j));
+					  System.out.println("k = " + points.get(k));
+					  System.out.println("l = " + points.get(l));*/
+					  
+					  for(int p = i+1; p < j; p++){
+					  
+						pair.clear();
+						computePair(k, p, pair, points);
+						String kpColor = edgeColor.get(pair);
+						
+						if(!kpColor.equalsIgnoreCase("purple")){
+							edgeColor.replace(pair,"purple");
+							updatedAnEdge = true;
+							//System.out.println("Flipped " + points.get(k) + "-" + points.get(p) + " edge to purple.");
+							
+						}
+					  
+					}
+					  
+					  
+				  }
+				  else if(cannotBlock(ijColor) && cannotBlock(klColor) && pointInDiscK >= 0){
+					  /*System.out.println("Every point between k and l must be too far from i.");
+					  System.out.println("i = " + points.get(i));
+					  System.out.println("j = " + points.get(j));
+					  System.out.println("k = " + points.get(k));
+					  System.out.println("l = " + points.get(l));*/
+					  
+					  for(int p = (k+1)%points.size(); p!=l; p = (p+1)%points.size()){
+						  pair.clear();
+						  computePair(i, p, pair, points);
+						  String ipColor = edgeColor.get(pair);
 						  
+						  if(!ipColor.equalsIgnoreCase("purple")){
+							  edgeColor.replace(pair,"purple");
+							  //System.out.println("Flipped " + points.get(i) + "-" + points.get(p) + " edge to purple.");
+							  updatedAnEdge = true;
+						  }
 					  }
 					  
 				  }
+					  
+				  
 				  
 			  }
 			  
@@ -1763,7 +1891,7 @@ public class MyClient {
                 // Administrative stuff to connect with the server.                
                 // We are connecting on port 9451.
                 String serverAddress = "52.202.254.64";
-                Socket socket = new Socket(serverAddress, 9451);
+                Socket socket = new Socket(serverAddress, 9452);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                 out.println("1");  //sending a 1 to denote, I want to start
@@ -1853,7 +1981,7 @@ public class MyClient {
                         sendMe = "S"+caseNumber;
                     }
                     
-                    socket = new Socket(serverAddress, 9451);
+                    socket = new Socket(serverAddress, 9452);
                     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     out = new PrintWriter(socket.getOutputStream(), true);
                     out.println(sendMe);
