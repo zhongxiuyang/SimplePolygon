@@ -65,7 +65,7 @@ public class MyClient {
 			return ordering.toString();
 		}
 		int optimalViewpointIndex = -1;
-		int minGaps = 1040;
+		int minGaps = 1040; // initial number of feasible gaps for this new vp
 		
 		// determine which viewpoint is the point we are going to recurse
         ArrayList<Integer> optimalGaps = new ArrayList<Integer>();
@@ -75,7 +75,7 @@ public class MyClient {
 			// insert usableViewpoints[i] into our current ordering in every gap
 			// int feasibleGaps = 0;
             
-            ArrayList<Integer> storedGaps = new ArrayList<Integer>();
+            ArrayList<Integer> storedGaps = new ArrayList<Integer>(); // store feasible gap index
             int numFeasibleGaps = 0;
             // storedGaps.clear();
 			for (int j = 0; j < ordering.size(); ++j)
@@ -88,12 +88,12 @@ public class MyClient {
 				if (isFeasibleOrdering(newOrdering))
 				{
 					storedGaps.add(j);
-          numFeasibleGaps++;
+                    numFeasibleGaps++;
 
-          if(numFeasibleGaps >+ minGaps){
-            //This already cannot be the optimal point so skip it.
-            break;
-          }
+                    if(numFeasibleGaps >+ minGaps){
+                        //This already cannot be the optimal point so skip it.
+                        break;
+                    }
 				}
 			}
             
