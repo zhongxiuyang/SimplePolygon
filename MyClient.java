@@ -175,7 +175,7 @@ public class MyClient {
 		//int viewPointsToCheck = 40;
 		if (usableViewpoints.size() <= 0)//allPoints.length - viewPointsToCheck)
 		{
-			System.out.println("We placed all the VPs.");//" + viewPointsToCheck + " VPs.");//everything. ");
+			System.out.println(ordering);//" + viewPointsToCheck + " VPs.");//everything. ");
 			return ordering.toString();
 		}
 		//int optimalViewpointIndex = -1;
@@ -2242,105 +2242,121 @@ public class MyClient {
                     }
                     int firstComma = nextCase.indexOf(',');
                     String caseNumber = nextCase.substring(0, firstComma);*/
+					
+					//String[] acegLocations = {"ACEG,A,B,C,D,E,F,G,H,I","A,ACEG,B,C,D,E,F,G,H,I","A,B,ACEG,C,D,E,F,G,H,I","A,B,C,ACEG,D,E,F,G,H,I","A,B,C,D,E,F,G,H,ACEG,I"};
+					
                     String fileStuff;// = nextCase.substring(firstComma + 1);
 					
-					fileStuff = "ACDFGI,A,B,C,D,E,F,G,H,I";
-                    
-                    // nextCase == "1,ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
-                    // caseNumber == "1"
-                    // fileStuff == "ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
-                    
-                     //   * case1.txt: ACEG BDFH ADEH ABEF BCFG CDGH A B C D E F G H
-                    
-                    //System.out.println("working on case " + nextCase);
-                    String[] arr = fileStuff.split(",");
-                    ArrayList<String> ordering = new ArrayList<String>();
-                    for (String item : arr) {
-                        ordering.add(item);
-                    }
-                    
-                   // int acegIndex = ordering.indexOf("ACEG");
-                    //int aIndex = ordering.indexOf("A");
-                    boolean rejected = false;
-                    /*if(aIndex < acegIndex){                        
-                        System.out.println("Redundant ordering: ACEG is right of A.  Rejecting.");
-                        System.out.flush();
-                        rejected = true;
-                    }
-                    
-                    int bdfhIndex = ordering.indexOf("BDFH");
-                    int eIndex = ordering.indexOf("E");
-                    int fIndex = ordering.indexOf("F");
-                    if(eIndex < bdfhIndex && bdfhIndex < fIndex){
-                        
-                        System.out.println("Redundant ordering: BDFH is between E and F.  Rejecting.");
-                        System.out.flush();
-                        rejected = true;
-                    }
-                    
-                    
-                    int gIndex = ordering.indexOf("G");
-                    int hIndex = ordering.indexOf("H");
-                    if(gIndex < bdfhIndex && bdfhIndex < hIndex){
-                        
-                        System.out.println("Redundant ordering: BDFH is between G and H.  Rejecting.");
-                        System.out.flush();
-                        rejected = true;
-                    }*/
-                    					
-					String erikLovesFiles = Long.toString(Thread.currentThread().getId());//caseNumber;
-					if(!isFeasibleOrdering(ordering,null,true,erikLovesFiles))
-						rejected = true;
-                    
-                    String sendMe = "";
-                    if(!rejected){                        
+					//fileStuff = "A,B,C,D,E,F,G,H,ACEG,I";
+					fileStuff = "[BDFH, BDFI, ADFH, ACFH, A, CEGI, B, ACEG, C, ACEH, D, E, F, G, BDGI, BEGI, H, I]";
+					fileStuff = fileStuff.replace(" ", "");  //gtfo spaces
+                    fileStuff = fileStuff.substring(1, fileStuff.length()-1);  //gtfo braces
 					
-						double probToAccept;
+					//BDFH,ACFH,ACEG,CEGI,A,B,BEGI,C,D,E,F,ACEH,G,H,ADFH,BDGI,BDFI,I";
+					//for(String fileStuff : acegLocations)
+					//{
+                    
+						// nextCase == "1,ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
+						// caseNumber == "1"
+						// fileStuff == "ACEG,BDFH,ADEH,ABEF,BCFG,CDGH,A,B,C,D,E,F,G,H"
 						
-						//String[] startingPoints = {"ABEH", "CFGI", "ACDG", "CDGI", "BEGH", "BCEGI", "ACDFH", "BDEGI", "BDFGHI", "BDGI", "ACFI", "ADFG", "BCDEFHI", "ABCEGI", "BCDEGI", "ABDEGH", "BCDGHI", "ACEFH", "CFI", "ADEH", "ACDFGHI", "BDFI", "CFHI", "BEFH", "ACDEFH", "BCFI", "ACDFGI", "BCEFHI", "ABCDFGI", "BEFI", "ABCFGH", "ADG", "ACEFGH", "ABDFHI", "ABDFH", "BCDFI", "ACDEG", "ACDEHI", "ACDEFGI", "BEHI", "ADGI", "BEGI", "ACFG", "ABDEGHI", "ABDEFGH", "ADGH", "CEGI", "BDEFGI", "BDEH", "BEH", "CEFGI", "ACEGH", "ABCEH", "ABDEFI", "ADEG", "CDEGHI", "ABEFGI", "CDFI", "BDFGI", "ABCEFG", "ABDGI", "ABEG", "ADFI", "ACEH", "ADFGH", "ABCDFH", "BCFH", "BCEFGHI", "CEFI", "BEGHI", "BCDFGH", "ADFH", "BDGH", "ACEGHI", "BCEH", "ACFH", "ABDG", "BDEFH", "CEHI", "ABCEFHI", "ABCDEGH", "ADEFHI", "ACFHI" }; probToAccept = 30/((double)startingPoints.length);
-						//String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BEGI","ACFH","BDGI","ACEH","BDFI","ADEG","BEFH","CFGI","ADGH","BEHI","ACFI","ABDG","BCEH","CDFI","ADFG","BEGH","CFHI","ADGI","ABEH","BCFI","ACDG","BDEH","CEFI" }; probToAccept = 33; //ZED = Zhongxiu ends debate.
-						String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BDGI","ACEH","ADEG","BEFH","ACFI","ABDG","BCEH","CDFI","ADFG","CFHI","ADGI","ABEH","BCFI","BDEH" }; probToAccept = 44; //ZED = Zhongxiu ends debate.
-						//String[] startingPoints = {"BDFH","CEGI","BDGI","ACEH","ADEG","BEFH","ABDG","BCEH","CDFI","CFHI","ADGI","ABEH","BCFI" }; probToAccept = 55; //ZED = Zhongxiu ends debate.
+						 //   * case1.txt: ACEG BDFH ADEH ABEF BCFG CDGH A B C D E F G H
 						
-						ArrayList<String> someStuff = new ArrayList<String>();
-						 
-						for(int i=0; i<startingPoints.length; i++){
-							
-							if(Math.random() < probToAccept)
-								someStuff.add(startingPoints[i]);
-							
+						//System.out.println("working on case " + nextCase);
+						String[] arr = fileStuff.split(",");
+						ArrayList<String> ordering = new ArrayList<String>();
+						for (String item : arr) {
+							ordering.add(item);
 						}
 						
-						String[] allPoints = new String[someStuff.size()];
-						for(int i=0; i<someStuff.size(); i++){
-							allPoints[i] = someStuff.get(i);
+					   // int acegIndex = ordering.indexOf("ACEG");
+						//int aIndex = ordering.indexOf("A");
+						boolean rejected = false;
+						/*if(aIndex < acegIndex){                        
+							System.out.println("Redundant ordering: ACEG is right of A.  Rejecting.");
+							System.out.flush();
+							rejected = true;
 						}
 						
-						allPoints = sortViewpoints(ordering,allPoints,erikLovesFiles);
+						int bdfhIndex = ordering.indexOf("BDFH");
+						int eIndex = ordering.indexOf("E");
+						int fIndex = ordering.indexOf("F");
+						if(eIndex < bdfhIndex && bdfhIndex < fIndex){
+							
+							System.out.println("Redundant ordering: BDFH is between E and F.  Rejecting.");
+							System.out.flush();
+							rejected = true;
+						}
+						
+						
+						int gIndex = ordering.indexOf("G");
+						int hIndex = ordering.indexOf("H");
+						if(gIndex < bdfhIndex && bdfhIndex < hIndex){
+							
+							System.out.println("Redundant ordering: BDFH is between G and H.  Rejecting.");
+							System.out.flush();
+							rejected = true;
+						}*/
+											
+						String erikLovesFiles = Long.toString(Thread.currentThread().getId());//caseNumber;
+						if(!isFeasibleOrdering(ordering,null,true,erikLovesFiles))
+							rejected = true;
+						
+						String sendMe = "";
+						if(!rejected){                        
+						
+							double probToAccept;
+							
+							//String[] startingPoints = {"ABEH", "CFGI", "ACDG", "CDGI", "BEGH", "BCEGI", "ACDFH", "BDEGI", "BDFGHI", "BDGI", "ACFI", "ADFG", "BCDEFHI", "ABCEGI", "BCDEGI", "ABDEGH", "BCDGHI", "ACEFH", "CFI", "ADEH", "ACDFGHI", "BDFI", "CFHI", "BEFH", "ACDEFH", "BCFI", "ACDFGI", "BCEFHI", "ABCDFGI", "BEFI", "ABCFGH", "ADG", "ACEFGH", "ABDFHI", "ABDFH", "BCDFI", "ACDEG", "ACDEHI", "ACDEFGI", "BEHI", "ADGI", "BEGI", "ACFG", "ABDEGHI", "ABDEFGH", "ADGH", "CEGI", "BDEFGI", "BDEH", "BEH", "CEFGI", "ACEGH", "ABCEH", "ABDEFI", "ADEG", "CDEGHI", "ABEFGI", "CDFI", "BDFGI", "ABCEFG", "ABDGI", "ABEG", "ADFI", "ACEH", "ADFGH", "ABCDFH", "BCFH", "BCEFGHI", "CEFI", "BEGHI", "BCDFGH", "ADFH", "BDGH", "ACEGHI", "BCEH", "ACFH", "ABDG", "BDEFH", "CEHI", "ABCEFHI", "ABCDEGH", "ADEFHI", "ACFHI" }; probToAccept = 30/((double)startingPoints.length);
+							//String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BEGI","ACFH","BDGI","ACEH","BDFI","ADEG","BEFH","CFGI","ADGH","BEHI","ACFI","ABDG","BCEH","CDFI","ADFG","BEGH","CFHI","ADGI","ABEH","BCFI","ACDG","BDEH","CEFI" }; probToAccept = 33; //ZED = Zhongxiu ends debate.
+							//String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BDGI","ACEH","ADEG","BEFH","ACFI","ABDG","BCEH","CDFI","ADFG","CFHI","ADGI","ABEH","BCFI","BDEH" }; probToAccept = 44; //ZED = Zhongxiu ends debate.
+							//String[] startingPoints = {"BDFH","CEGI","BDGI","ACEH","ADEG","BEFH","ABDG","BCEH","CDFI","CFHI","ADGI","ABEH","BCFI" }; probToAccept = 55; //ZED = Zhongxiu ends debate.
+							//String[] startingPoints = {"BDFH","CEGI","ADFH","BEGI","ACFH","BDGI","ACEH","BDFI"}; probToAccept = 66; //ZED = Zhongxiu ends debate.
+							String[] startingPoints = {"ADEG","BEFH","CFGI","ADGH","BEHI","ACFI","ABDG","BCEH","CDFI","ADFG","BEGH","CFHI","ADGI","ABEH","BCFI","ACDG","BDEH","CEFI" }; probToAccept = 77; //ZED = Zhongxiu ends debate.
+							
+							ArrayList<String> someStuff = new ArrayList<String>();
+							 
+							for(int i=0; i<startingPoints.length; i++){
+								
+								if(Math.random() < probToAccept)
+									someStuff.add(startingPoints[i]);
+								
+							}
+							
+							String[] allPoints = new String[someStuff.size()];
+							for(int i=0; i<someStuff.size(); i++){
+								allPoints[i] = someStuff.get(i);
+							}
+							
+							allPoints = sortViewpoints(ordering,allPoints,erikLovesFiles);
+						
+							long startTime = System.currentTimeMillis();
+							String result = determineCase(ordering, erikLovesFiles, allPoints);
+							long endTime = System.currentTimeMillis();
+							
+							long runningTime = (endTime - startTime)/1000;
+							
+							if(!result.equals("")){
+								result = result.replace(" ", "");  //gtfo spaces
+								result = result.substring(1, result.length()-1);  //gtfo braces
+								System.out.println("Case accepted in " + runningTime + " seconds. \n" + result + "\n"); //ordering on own line
+							   // sendMe = caseNumber+",";
+								sendMe += result;
+							} else{
+								
+								System.out.println("Case rejected in " + runningTime + " seconds (which is what we want).\n");
+								System.out.println(someStuff);
+								System.out.flush();
+								System.exit(0);
+								//sendMe = "S"+caseNumber;
+							}
+						} else{
+							//reject case
+							System.out.println("Case rejected immediately - inital case is infeasible.");
+						   // sendMe = "S"+caseNumber;
+						}
 					
-                        long startTime = System.currentTimeMillis();
-                        String result = determineCase(ordering, erikLovesFiles, allPoints);
-                        long endTime = System.currentTimeMillis();
-                        
-                        long runningTime = (endTime - startTime)/1000;
-                        
-                        if(!result.equals("")){
-                            result = result.replace(" ", "");  //gtfo spaces
-                            result = result.substring(1, result.length()-1);  //gtfo braces
-                            System.out.println("Case accepted in " + runningTime + " seconds. \n" + result + "\n"); //ordering on own line
-                           // sendMe = caseNumber+",";
-                            sendMe += result;
-                        } else{
-                            System.out.println("Case rejected in " + runningTime + " seconds (which is what we want).\n");
-							System.out.println(someStuff);
-                            System.out.flush();
-                            //sendMe = "S"+caseNumber;
-                        }
-                    } else{
-                        //reject case
-						System.out.println("Case rejected immediately - inital case is infeasible.");
-                       // sendMe = "S"+caseNumber;
-                    }
+					//}
                     
                     /*socket = new Socket(serverAddress, 9452);
                     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
