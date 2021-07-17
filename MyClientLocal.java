@@ -10,10 +10,11 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MyClient {
+public class MyClientLocal {
 
-	public static boolean moreThreads;  
+	public static boolean moreThreads;
 	public static ConcurrentHashMap<String, HashMap<ArrayList<String>, String>> allTheMaps = new ConcurrentHashMap<>();
+	public static ConcurrentHashMap<String, Stack<ArrayList<String>>> gapsThatWork = new ConcurrentHashMap<>();
 
   public static void main(String[] args) throws Exception {
     //automatically set number of threads equal to number of processors 
@@ -26,8 +27,6 @@ public class MyClient {
     System.out.println("Starting "+numberThreads+" threads.");
     for (int i = 0; i < numberThreads; i++) {
       new RunIt().start();
-	  //sleep for half a second to avoid getting identical case
-	  Thread.currentThread().sleep(500);
     }
     moreThreads = true;
 	while(moreThreads){
@@ -43,12 +42,79 @@ public class MyClient {
     }
   }
   
-  public static Boolean thereIsAPointWithNoGaps(ArrayList<String> ordering, ArrayList<String> usableViewpoints, HashMap<ArrayList<String>, String> edgeColor, String nextCase)
+  public static ArrayList<String> thereIsAPointWithNoGaps(ArrayList<String> ordering, ArrayList<String> usableViewpoints, HashMap<ArrayList<String>, String> edgeColor, String nextCase)
+  {
+	  String pointWith1Gap = "";
+	  for(int i=0; i<usableViewpoints.size(); i++){
+		  
+		  String thisPoint = usableViewpoints.get(i);
+		  ArrayList<String> gapsForThisPoint = gapsThatWork.get(thisPoint + "-" + nextCase).peek();
+		  
+		  if(gapsForThisPoint.size() == 0)
+			  return null;
+		  else if(gapsForThisPoint.size() == 1 && pointWith1Gap.equals("")){
+			  pointWith1Gap = thisPoint;
+		  }
+		  
+	  }
+	  
+	  if(!pointWith1Gap.equals("")){
+		  String thisPoint = pointWith1Gap;
+		  ArrayList<String> gapsForThisPoint = gapsThatWork.get(thisPoint + "-" + nextCase).peek();
+		  System.out.println(thisPoint + " has only 1 gap.");
+			String theGapString = gapsForThisPoint.get(0);
+			String rightEndOfGap = theGapString.substring(theGapString.indexOf(':')+1);
+			int theGap = 0;
+			while(!rightEndOfGap.equals(ordering.get(theGap))){
+				theGap++;
+			}
+			ordering.add(theGap, thisPoint);
+			
+			HashMap<ArrayList<String>, String> copyOfEdgeColors = new HashMap<ArrayList<String>, String>(edgeColor);
+			
+			for(int k=0; k<ordering.size(); k++)
+			{
+				if(k==theGap)
+					continue;
+				
+				ArrayList<String> pair = new ArrayList<String>();
+				computePair(k,theGap,pair,ordering);
+				String otherPoint = ordering.get(k);
+				
+				if(otherPoint.length() > 1){
+				
+					//VP-VP edge
+					copyOfEdgeColors.put(pair,"cyan");
+				}
+				else if(thisPoint.indexOf(otherPoint) == -1){
+					
+					//VP-Guard that don't see each other
+					copyOfEdgeColors.put(pair,"orange");				
+				}
+				else{
+					//VP-Guard that see each other
+					copyOfEdgeColors.put(pair,"green");
+				}
+			}
+			
+			isFeasibleOrdering(ordering,copyOfEdgeColors,true,nextCase);
+			return ordering;
+			  
+		  }
+	  
+	  
+	  return ordering;
+  }
+  
+  /*public static ArrayList<String> thereIsAPointWithNoGaps(ArrayList<String> ordering, ArrayList<String> usableViewpoints, HashMap<ArrayList<String>, String> edgeColor, String nextCase)
   {
 	  for(int i=0; i<usableViewpoints.size(); i++){
 		  
-		  boolean foundAGap = false;
+		  boolean foundAGap = false, foundASecondGap = false;
+		  int theGap = -1;
 		  String thisPoint = usableViewpoints.get(i);
+		  
+		  //System.out.println("Current point: " + thisPoint + ", current order length: " + ordering.size());
 		  
 		  for (int j = 0; j < ordering.size(); ++j)
 			{
@@ -90,8 +156,14 @@ public class MyClient {
                 
 				if (isFeasibleOrdering(newOrdering,copyOfEdgeColors,false,nextCase))
 				{
-					foundAGap = true;
-					break;
+					if(!foundAGap){
+						foundAGap = true;
+						theGap = j;
+					}
+					else {
+						foundASecondGap = true;
+						break;
+					}
 				}
 				
 				
@@ -100,15 +172,270 @@ public class MyClient {
 			if(!foundAGap)
 			{
 				//useableViewpoint[i] had no gap.
-				return true;
+				System.out.println(thisPoint + " has no gaps.");
+				return null;
 				
+			}
+			else if(!foundASecondGap){
+				System.out.println(thisPoint + " has only 1 gap.");
+				ordering.add(theGap, thisPoint);
+				
+				HashMap<ArrayList<String>, String> copyOfEdgeColors = new HashMap<ArrayList<String>, String>(edgeColor);
+				
+				for(int k=0; k<ordering.size(); k++)
+				{
+					if(k==theGap)
+						continue;
+					
+					ArrayList<String> pair = new ArrayList<String>();
+					computePair(k,theGap,pair,ordering);
+					String otherPoint = ordering.get(k);
+					
+					if(otherPoint.length() > 1){
+					
+						//VP-VP edge
+						copyOfEdgeColors.put(pair,"cyan");
+					}
+					else if(thisPoint.indexOf(otherPoint) == -1){
+						
+						//VP-Guard that don't see each other
+						copyOfEdgeColors.put(pair,"orange");				
+					}
+					else{
+						//VP-Guard that see each other
+						copyOfEdgeColors.put(pair,"green");
+					}
+				}
+				
+				isFeasibleOrdering(ordering,copyOfEdgeColors,true,nextCase);
+				String key = "edgeColor" + ordering.size() +"-" + nextCase;
+				edgeColor = allTheMaps.get(key);
 			}
 		  
 	  }
 	  
 	  
-	  return false;
+	  return ordering;
 	  
+  }*/
+  
+  public static ArrayList<String> updateGapsForAllPoints(ArrayList<String> ordering, ArrayList<String> usableViewpoints, HashMap<ArrayList<String>, String> edgeColor, String nextCase, ArrayList<String> importantPoints){
+	
+		String key = "ABC-" + nextCase;
+		if(!gapsThatWork.containsKey(key)){
+			return initializeGapsThatWork(ordering, edgeColor, nextCase, importantPoints);			
+		}
+		/*for(int i=0; i<usableViewpoints.size(); i++){
+			String thisPoint = usableViewpoints.get(i);
+			System.out.println("Stack size for " + thisPoint + ": " + gapsThatWork.get(thisPoint+"-"+nextCase).size());
+		}*/
+		int startingStackSize = gapsThatWork.get(key).size();
+		int cefhiSize = gapsThatWork.get("CEFHI-"+nextCase).size();
+		System.out.println("Starting stack size: " + startingStackSize + ", cefhi: " + cefhiSize);
+		int bigThreshold = 6;
+		
+		Boolean addedPointToOrder = true;
+		while(addedPointToOrder){
+			addedPointToOrder = false;
+			
+			for(int i=0; i<usableViewpoints.size(); i++){
+				
+				String thisPoint = usableViewpoints.get(i);
+				Stack<ArrayList<String>> stackForThisPoint = gapsThatWork.get(thisPoint+"-"+nextCase);
+				ArrayList<String> gapsThatWorkedBefore;
+				if(stackForThisPoint.size() > startingStackSize)
+					gapsThatWorkedBefore = stackForThisPoint.pop();
+				else
+					gapsThatWorkedBefore = stackForThisPoint.peek();
+				
+				
+				
+				
+				ArrayList<String> updatedGaps = new ArrayList<String>();
+				
+				if(gapsThatWorkedBefore.get(0).equals("Big")){
+					updatedGaps.add("Big");
+					updatedGaps.add("Brah");
+					gapsThatWork.get(thisPoint+"-"+nextCase).push(updatedGaps);
+					continue;
+				}
+				
+				int j = -1;
+				int oldGapIndex = 0;
+				String currentLeftPoint = "-infty";
+				
+				lookingForGapsLoop:
+				while(j<ordering.size()-1 && oldGapIndex < gapsThatWorkedBefore.size()){
+					
+					String oldGap = gapsThatWorkedBefore.get(oldGapIndex);
+					String oldGapLeftPoint = oldGap.substring(0,oldGap.indexOf(':'));
+					String oldGapRightPoint = oldGap.substring(oldGap.indexOf(':')+1);
+					
+					//System.out.println("Checking " + oldGap + " from " + oldGapLeftPoint + " to " + oldGapRightPoint);
+					
+					while(!currentLeftPoint.equals(oldGapLeftPoint)){
+						j++;
+						currentLeftPoint = ordering.get(j);
+					}
+					
+					String currentRightPoint;
+					do{
+						try{
+							currentRightPoint = ordering.get(j+1);
+						}
+						catch(Exception e){
+							System.out.println("CRASHING BRAH");
+							System.out.println("Checking " + oldGap);
+							for(int ii=0; ii<usableViewpoints.size(); ii++){
+								String ithisPoint = usableViewpoints.get(ii);
+								System.out.println("Stack size for " + ithisPoint + ": " + gapsThatWork.get(ithisPoint+"-"+nextCase).size());
+							}
+							System.exit(0);
+						}
+						
+						currentRightPoint = ordering.get(j+1);
+						
+						HashMap<ArrayList<String>, String> copyOfEdgeColors = new HashMap<ArrayList<String>, String>(edgeColor);
+					
+						ArrayList<String> newOrdering = new ArrayList<String>();
+						newOrdering.clear();
+						newOrdering.addAll(ordering);
+						newOrdering.add(j+1, usableViewpoints.get(i));
+						
+						for(int k=0; k<newOrdering.size(); k++)
+						{
+							if(k==j+1)
+								continue;
+							
+							ArrayList<String> pair = new ArrayList<String>();
+							computePair(k,j+1,pair,newOrdering);
+							String otherPoint = newOrdering.get(k);
+							
+							if(otherPoint.length() > 1){
+							
+								//VP-VP edge
+								copyOfEdgeColors.put(pair,"cyan");
+							}
+							else if(thisPoint.indexOf(otherPoint) == -1){
+								
+								//VP-Guard that don't see each other
+								copyOfEdgeColors.put(pair,"orange");				
+							}
+							else{
+								//VP-Guard that see each other
+								copyOfEdgeColors.put(pair,"green");
+							}
+						}
+						
+						
+						if (isFeasibleOrdering(newOrdering,copyOfEdgeColors,false,nextCase))
+						{
+							updatedGaps.add(currentLeftPoint+":"+currentRightPoint);
+							
+							if(updatedGaps.size() > bigThreshold && !importantPoints.contains(thisPoint))
+								break lookingForGapsLoop;
+						}
+						
+						currentLeftPoint = currentRightPoint;
+						j++;
+						
+					}while(!currentRightPoint.equals(oldGapRightPoint));
+					
+					oldGapIndex++;
+					
+				}
+				//We have the list of updated gaps for this point.
+				
+				if(updatedGaps.size() == 0){
+					System.out.println("No gaps for " + thisPoint + ".  Rejecting.");
+					for(int z =0; z<usableViewpoints.size(); z++){
+						String prevPoint = usableViewpoints.get(z);
+						String hashKey = prevPoint + "-" + nextCase;
+						Stack<ArrayList<String>> theStack = gapsThatWork.get(hashKey);
+						
+						if(prevPoint.equals("CEFHI"))
+							System.out.println("CEFHI stack size before pop: " + theStack.size() + ", starting size: " + startingStackSize);
+						
+						if(theStack.size() > startingStackSize)
+							theStack.pop();
+						
+						if(prevPoint.equals("CEFHI"))
+							System.out.println("CEFHI stack size after pop: " + theStack.size());
+					}
+					
+					return null;  //null means we are rejecting.
+				}
+				
+				if(updatedGaps.size() == 1){
+					System.out.println(thisPoint + " has only one gap.  Adding it.");
+					
+					addedPointToOrder = true;
+					String theGapString = updatedGaps.get(0);
+					String rightEndOfGap = theGapString.substring(theGapString.indexOf(':')+1);
+					int theGap = 0;
+					while(!rightEndOfGap.equals(ordering.get(theGap))){
+						theGap++;
+					}
+					ordering.add(theGap, thisPoint);
+					
+					HashMap<ArrayList<String>, String> copyOfEdgeColors = new HashMap<ArrayList<String>, String>(edgeColor);
+					
+					for(int k=0; k<ordering.size(); k++)
+					{
+						if(k==theGap)
+							continue;
+						
+						ArrayList<String> pair = new ArrayList<String>();
+						computePair(k,theGap,pair,ordering);
+						String otherPoint = ordering.get(k);
+						
+						if(otherPoint.length() > 1){
+						
+							//VP-VP edge
+							copyOfEdgeColors.put(pair,"cyan");
+						}
+						else if(thisPoint.indexOf(otherPoint) == -1){
+							
+							//VP-Guard that don't see each other
+							copyOfEdgeColors.put(pair,"orange");				
+						}
+						else{
+							//VP-Guard that see each other
+							copyOfEdgeColors.put(pair,"green");
+						}
+					}
+					
+					isFeasibleOrdering(ordering,copyOfEdgeColors,true,nextCase);
+					edgeColor = allTheMaps.get("edgeColor" + ordering.size() +"-" + nextCase);
+					gapsThatWork.get(thisPoint+"-"+nextCase).push(updatedGaps);
+				}
+				else if(updatedGaps.size() > bigThreshold && !importantPoints.contains(thisPoint)){
+					System.out.println("Here is a worthless freaking point: " + thisPoint);
+					ArrayList<String> wat = new ArrayList<String>();
+					wat.add("Big");
+					wat.add("Bruh");
+					gapsThatWork.get(thisPoint+"-"+nextCase).push(wat);
+				}
+				else{
+					System.out.println("Updated gaps for " + thisPoint + ": " + updatedGaps);
+					gapsThatWork.get(thisPoint+"-"+nextCase).push(updatedGaps);
+				}
+				
+			}
+			
+			
+		}
+	  
+	  return ordering;
+  }
+  
+  public static void removeOldGaps(ArrayList<String> usableFromAllPoints, String nextCase){
+	  
+	  for(String thisPoint : usableFromAllPoints){
+		  
+		  gapsThatWork.get(thisPoint+"-"+nextCase).pop();
+		  
+	  }
   }
 
     public static String determineCase(ArrayList<String> ordering, String nextCase, String[] allPoints)
@@ -116,10 +443,11 @@ public class MyClient {
 		
 		System.out.println("Placed " + ordering.size() + " points: " + ordering);
 		
-    	ArrayList<String> everyViewpoints = new ArrayList<String>();
+    	
 		
-		String[] everyFreakinPoint = {"I", "H", "HI", "G", "GI", "GH", "GHI", "F", "FI", "FH", "FHI", "FG", "FGI", "FGH", "FGHI", "E", "EI", "EH", "EHI", "EG", "EGI", "EGH", "EGHI", "EF", "EFI", "EFH", "EFHI", "EFG", "EFGI", "EFGH", "EFGHI", "D", "DI", "DH", "DHI", "DG", "DGI", "DGH", "DGHI", "DF", "DFI", "DFH", "DFHI", "DFG", "DFGI", "DFGH", "DFGHI", "DE", "DEI", "DEH", "DEHI", "DEG", "DEGI", "DEGH", "DEGHI", "DEF", "DEFI", "DEFH", "DEFHI", "DEFG", "DEFGI", "DEFGH", "DEFGHI", "C", "CI", "CH", "CHI", "CG", "CGI", "CGH", "CGHI", "CF", "CFI", "CFH", "CFHI", "CFG", "CFGI", "CFGH", "CFGHI", "CE", "CEI", "CEH", "CEHI", "CEG", "CEGI", "CEGH", "CEGHI", "CEF", "CEFI", "CEFH", "CEFHI", "CEFG", "CEFGI", "CEFGH", "CEFGHI", "CD", "CDI", "CDH", "CDHI", "CDG", "CDGI", "CDGH", "CDGHI", "CDF", "CDFI", "CDFH", "CDFHI", "CDFG", "CDFGI", "CDFGH", "CDFGHI", "CDE", "CDEI", "CDEH", "CDEHI", "CDEG", "CDEGI", "CDEGH", "CDEGHI", "CDEF", "CDEFI", "CDEFH", "CDEFHI", "CDEFG", "CDEFGI", "CDEFGH", "CDEFGHI", "B", "BI", "BH", "BHI", "BG", "BGI", "BGH", "BGHI", "BF", "BFI", "BFH", "BFHI", "BFG", "BFGI", "BFGH", "BFGHI", "BE", "BEI", "BEH", "BEHI", "BEG", "BEGI", "BEGH", "BEGHI", "BEF", "BEFI", "BEFH", "BEFHI", "BEFG", "BEFGI", "BEFGH", "BEFGHI", "BD", "BDI", "BDH", "BDHI", "BDG", "BDGI", "BDGH", "BDGHI", "BDF", "BDFI", "BDFH", "BDFHI", "BDFG", "BDFGI", "BDFGH", "BDFGHI", "BDE", "BDEI", "BDEH", "BDEHI", "BDEG", "BDEGI", "BDEGH", "BDEGHI", "BDEF", "BDEFI", "BDEFH", "BDEFHI", "BDEFG", "BDEFGI", "BDEFGH", "BDEFGHI", "BC", "BCI", "BCH", "BCHI", "BCG", "BCGI", "BCGH", "BCGHI", "BCF", "BCFI", "BCFH", "BCFHI", "BCFG", "BCFGI", "BCFGH", "BCFGHI", "BCE", "BCEI", "BCEH", "BCEHI", "BCEG", "BCEGI", "BCEGH", "BCEGHI", "BCEF", "BCEFI", "BCEFH", "BCEFHI", "BCEFG", "BCEFGI", "BCEFGH", "BCEFGHI", "BCD", "BCDI", "BCDH", "BCDHI", "BCDG", "BCDGI", "BCDGH", "BCDGHI", "BCDF", "BCDFI", "BCDFH", "BCDFHI", "BCDFG", "BCDFGI", "BCDFGH", "BCDFGHI", "BCDE", "BCDEI", "BCDEH", "BCDEHI", "BCDEG", "BCDEGI", "BCDEGH", "BCDEGHI", "BCDEF", "BCDEFI", "BCDEFH", "BCDEFHI", "BCDEFG", "BCDEFGI", "BCDEFGH", "BCDEFGHI", "A", "AI", "AH", "AHI", "AG", "AGI", "AGH", "AGHI", "AF", "AFI", "AFH", "AFHI", "AFG", "AFGI", "AFGH", "AFGHI", "AE", "AEI", "AEH", "AEHI", "AEG", "AEGI", "AEGH", "AEGHI", "AEF", "AEFI", "AEFH", "AEFHI", "AEFG", "AEFGI", "AEFGH", "AEFGHI", "AD", "ADI", "ADH", "ADHI", "ADG", "ADGI", "ADGH", "ADGHI", "ADF", "ADFI", "ADFH", "ADFHI", "ADFG", "ADFGI", "ADFGH", "ADFGHI", "ADE", "ADEI", "ADEH", "ADEHI", "ADEG", "ADEGI", "ADEGH", "ADEGHI", "ADEF", "ADEFI", "ADEFH", "ADEFHI", "ADEFG", "ADEFGI", "ADEFGH", "ADEFGHI", "AC", "ACI", "ACH", "ACHI", "ACG", "ACGI", "ACGH", "ACGHI", "ACF", "ACFI", "ACFH", "ACFHI", "ACFG", "ACFGI", "ACFGH", "ACFGHI", "ACE", "ACEI", "ACEH", "ACEHI", "ACEG", "ACEGI", "ACEGH", "ACEGHI", "ACEF", "ACEFI", "ACEFH", "ACEFHI", "ACEFG", "ACEFGI", "ACEFGH", "ACEFGHI", "ACD", "ACDI", "ACDH", "ACDHI", "ACDG", "ACDGI", "ACDGH", "ACDGHI", "ACDF", "ACDFI", "ACDFH", "ACDFHI", "ACDFG", "ACDFGI", "ACDFGH", "ACDFGHI", "ACDE", "ACDEI", "ACDEH", "ACDEHI", "ACDEG", "ACDEGI", "ACDEGH", "ACDEGHI", "ACDEF", "ACDEFI", "ACDEFH", "ACDEFHI", "ACDEFG", "ACDEFGI", "ACDEFGH", "ACDEFGHI", "AB", "ABI", "ABH", "ABHI", "ABG", "ABGI", "ABGH", "ABGHI", "ABF", "ABFI", "ABFH", "ABFHI", "ABFG", "ABFGI", "ABFGH", "ABFGHI", "ABE", "ABEI", "ABEH", "ABEHI", "ABEG", "ABEGI", "ABEGH", "ABEGHI", "ABEF", "ABEFI", "ABEFH", "ABEFHI", "ABEFG", "ABEFGI", "ABEFGH", "ABEFGHI", "ABD", "ABDI", "ABDH", "ABDHI", "ABDG", "ABDGI", "ABDGH", "ABDGHI", "ABDF", "ABDFI", "ABDFH", "ABDFHI", "ABDFG", "ABDFGI", "ABDFGH", "ABDFGHI", "ABDE", "ABDEI", "ABDEH", "ABDEHI", "ABDEG", "ABDEGI", "ABDEGH", "ABDEGHI", "ABDEF", "ABDEFI", "ABDEFH", "ABDEFHI", "ABDEFG", "ABDEFGI", "ABDEFGH", "ABDEFGHI", "ABC", "ABCI", "ABCH", "ABCHI", "ABCG", "ABCGI", "ABCGH", "ABCGHI", "ABCF", "ABCFI", "ABCFH", "ABCFHI", "ABCFG", "ABCFGI", "ABCFGH", "ABCFGHI", "ABCE", "ABCEI", "ABCEH", "ABCEHI", "ABCEG", "ABCEGI", "ABCEGH", "ABCEGHI", "ABCEF", "ABCEFI", "ABCEFH", "ABCEFHI", "ABCEFG", "ABCEFGI", "ABCEFGH", "ABCEFGHI", "ABCD", "ABCDI", "ABCDH", "ABCDHI", "ABCDG", "ABCDGI", "ABCDGH", "ABCDGHI", "ABCDF", "ABCDFI", "ABCDFH", "ABCDFHI", "ABCDFG", "ABCDFGI", "ABCDFGH", "ABCDFGHI", "ABCDE", "ABCDEI", "ABCDEH", "ABCDEHI", "ABCDEG", "ABCDEGI", "ABCDEGH", "ABCDEGHI", "ABCDEF", "ABCDEFI", "ABCDEFH", "ABCDEFHI", "ABCDEFG", "ABCDEFGI", "ABCDEFGH", "ABCDEFGHI"};
+		String[] everyFreakinPoint = {"HI", "GI", "GH", "GHI", "FI", "FH", "FHI", "FG", "FGI", "FGH", "FGHI", "EI", "EH", "EHI", "EG", "EGI", "EGH", "EGHI", "EF", "EFI", "EFH", "EFHI", "EFG", "EFGI", "EFGH", "EFGHI", "DI", "DH", "DHI", "DG", "DGI", "DGH", "DGHI", "DF", "DFI", "DFH", "DFHI", "DFG", "DFGI", "DFGH", "DFGHI", "DE", "DEI", "DEH", "DEHI", "DEG", "DEGI", "DEGH", "DEGHI", "DEF", "DEFI", "DEFH", "DEFHI", "DEFG", "DEFGI", "DEFGH", "DEFGHI", "CI", "CH", "CHI", "CG", "CGI", "CGH", "CGHI", "CF", "CFI", "CFH", "CFHI", "CFG", "CFGI", "CFGH", "CFGHI", "CE", "CEI", "CEH", "CEHI", "CEG", "CEGI", "CEGH", "CEGHI", "CEF", "CEFI", "CEFH", "CEFHI", "CEFG", "CEFGI", "CEFGH", "CEFGHI", "CD", "CDI", "CDH", "CDHI", "CDG", "CDGI", "CDGH", "CDGHI", "CDF", "CDFI", "CDFH", "CDFHI", "CDFG", "CDFGI", "CDFGH", "CDFGHI", "CDE", "CDEI", "CDEH", "CDEHI", "CDEG", "CDEGI", "CDEGH", "CDEGHI", "CDEF", "CDEFI", "CDEFH", "CDEFHI", "CDEFG", "CDEFGI", "CDEFGH", "CDEFGHI", "BI", "BH", "BHI", "BG", "BGI", "BGH", "BGHI", "BF", "BFI", "BFH", "BFHI", "BFG", "BFGI", "BFGH", "BFGHI", "BE", "BEI", "BEH", "BEHI", "BEG", "BEGI", "BEGH", "BEGHI", "BEF", "BEFI", "BEFH", "BEFHI", "BEFG", "BEFGI", "BEFGH", "BEFGHI", "BD", "BDI", "BDH", "BDHI", "BDG", "BDGI", "BDGH", "BDGHI", "BDF", "BDFI", "BDFH", "BDFHI", "BDFG", "BDFGI", "BDFGH", "BDFGHI", "BDE", "BDEI", "BDEH", "BDEHI", "BDEG", "BDEGI", "BDEGH", "BDEGHI", "BDEF", "BDEFI", "BDEFH", "BDEFHI", "BDEFG", "BDEFGI", "BDEFGH", "BDEFGHI", "BC", "BCI", "BCH", "BCHI", "BCG", "BCGI", "BCGH", "BCGHI", "BCF", "BCFI", "BCFH", "BCFHI", "BCFG", "BCFGI", "BCFGH", "BCFGHI", "BCE", "BCEI", "BCEH", "BCEHI", "BCEG", "BCEGI", "BCEGH", "BCEGHI", "BCEF", "BCEFI", "BCEFH", "BCEFHI", "BCEFG", "BCEFGI", "BCEFGH", "BCEFGHI", "BCD", "BCDI", "BCDH", "BCDHI", "BCDG", "BCDGI", "BCDGH", "BCDGHI", "BCDF", "BCDFI", "BCDFH", "BCDFHI", "BCDFG", "BCDFGI", "BCDFGH", "BCDFGHI", "BCDE", "BCDEI", "BCDEH", "BCDEHI", "BCDEG", "BCDEGI", "BCDEGH", "BCDEGHI", "BCDEF", "BCDEFI", "BCDEFH", "BCDEFHI", "BCDEFG", "BCDEFGI", "BCDEFGH", "BCDEFGHI", "AI", "AH", "AHI", "AG", "AGI", "AGH", "AGHI", "AF", "AFI", "AFH", "AFHI", "AFG", "AFGI", "AFGH", "AFGHI", "AE", "AEI", "AEH", "AEHI", "AEG", "AEGI", "AEGH", "AEGHI", "AEF", "AEFI", "AEFH", "AEFHI", "AEFG", "AEFGI", "AEFGH", "AEFGHI", "AD", "ADI", "ADH", "ADHI", "ADG", "ADGI", "ADGH", "ADGHI", "ADF", "ADFI", "ADFH", "ADFHI", "ADFG", "ADFGI", "ADFGH", "ADFGHI", "ADE", "ADEI", "ADEH", "ADEHI", "ADEG", "ADEGI", "ADEGH", "ADEGHI", "ADEF", "ADEFI", "ADEFH", "ADEFHI", "ADEFG", "ADEFGI", "ADEFGH", "ADEFGHI", "AC", "ACI", "ACH", "ACHI", "ACG", "ACGI", "ACGH", "ACGHI", "ACF", "ACFI", "ACFH", "ACFHI", "ACFG", "ACFGI", "ACFGH", "ACFGHI", "ACE", "ACEI", "ACEH", "ACEHI", "ACEG", "ACEGI", "ACEGH", "ACEGHI", "ACEF", "ACEFI", "ACEFH", "ACEFHI", "ACEFG", "ACEFGI", "ACEFGH", "ACEFGHI", "ACD", "ACDI", "ACDH", "ACDHI", "ACDG", "ACDGI", "ACDGH", "ACDGHI", "ACDF", "ACDFI", "ACDFH", "ACDFHI", "ACDFG", "ACDFGI", "ACDFGH", "ACDFGHI", "ACDE", "ACDEI", "ACDEH", "ACDEHI", "ACDEG", "ACDEGI", "ACDEGH", "ACDEGHI", "ACDEF", "ACDEFI", "ACDEFH", "ACDEFHI", "ACDEFG", "ACDEFGI", "ACDEFGH", "ACDEFGHI", "AB", "ABI", "ABH", "ABHI", "ABG", "ABGI", "ABGH", "ABGHI", "ABF", "ABFI", "ABFH", "ABFHI", "ABFG", "ABFGI", "ABFGH", "ABFGHI", "ABE", "ABEI", "ABEH", "ABEHI", "ABEG", "ABEGI", "ABEGH", "ABEGHI", "ABEF", "ABEFI", "ABEFH", "ABEFHI", "ABEFG", "ABEFGI", "ABEFGH", "ABEFGHI", "ABD", "ABDI", "ABDH", "ABDHI", "ABDG", "ABDGI", "ABDGH", "ABDGHI", "ABDF", "ABDFI", "ABDFH", "ABDFHI", "ABDFG", "ABDFGI", "ABDFGH", "ABDFGHI", "ABDE", "ABDEI", "ABDEH", "ABDEHI", "ABDEG", "ABDEGI", "ABDEGH", "ABDEGHI", "ABDEF", "ABDEFI", "ABDEFH", "ABDEFHI", "ABDEFG", "ABDEFGI", "ABDEFGH", "ABDEFGHI", "ABC", "ABCI", "ABCH", "ABCHI", "ABCG", "ABCGI", "ABCGH", "ABCGHI", "ABCF", "ABCFI", "ABCFH", "ABCFHI", "ABCFG", "ABCFGI", "ABCFGH", "ABCFGHI", "ABCE", "ABCEI", "ABCEH", "ABCEHI", "ABCEG", "ABCEGI", "ABCEGH", "ABCEGHI", "ABCEF", "ABCEFI", "ABCEFH", "ABCEFHI", "ABCEFG", "ABCEFGI", "ABCEFGH", "ABCEFGHI", "ABCD", "ABCDI", "ABCDH", "ABCDHI", "ABCDG", "ABCDGI", "ABCDGH", "ABCDGHI", "ABCDF", "ABCDFI", "ABCDFH", "ABCDFHI", "ABCDFG", "ABCDFGI", "ABCDFGH", "ABCDFGHI", "ABCDE", "ABCDEI", "ABCDEH", "ABCDEHI", "ABCDEG", "ABCDEGI", "ABCDEGH", "ABCDEGHI", "ABCDEF", "ABCDEFI", "ABCDEFH", "ABCDEFHI", "ABCDEFG", "ABCDEFGI", "ABCDEFGH", "ABCDEFGHI"};
 		
+		ArrayList<String> everyViewpoints = new ArrayList<String>();
 		for (String s : everyFreakinPoint)
 		{
 			everyViewpoints.add(s);
@@ -158,15 +486,50 @@ public class MyClient {
             e.printStackTrace();
         }
 		
-		if(ordering.size() % 1 == 0 && thereIsAPointWithNoGaps(ordering, usableViewpoints, edgeColor, nextCase)){
+		ArrayList<String> importantPoints = new ArrayList<String>();
+		//for(int i =0; i< allPoints.length; i++)
+		//	importantPoints.add(allPoints[i]);
+		
+		//if(updateGapsForAllPoints(ordering, usableViewpoints, edgeColor, nextCase, importantPoints))
+		//{
+			//There was a point with no gaps, so we are rejcting.  We already removed the gaps for this subproblem.
+		//	String key = "edgeColor" + currentOrderingSize +"-" + nextCase;
+		//	allTheMaps.remove(key);
+		//	return "";
+		//}
+		
+		int currentOrderingSize = ordering.size();
+		//ordering = thereIsAPointWithNoGaps(ordering, usableViewpoints, edgeColor, nextCase);
+		ordering = updateGapsForAllPoints(ordering, usableViewpoints, edgeColor, nextCase, importantPoints);
+		if(ordering == null){
 			//File myObj = new File("edgeColor" + ordering.size() +"-" + nextCase + ".ser");
 			//myObj.delete();
-			String key = "edgeColor" + ordering.size() +"-" + nextCase;
-			allTheMaps.remove(key);
+			String key = "edgeColor" + currentOrderingSize +"-" + nextCase;
+			while(allTheMaps.containsKey(key)){
+				allTheMaps.remove(key);
+				currentOrderingSize++;
+				key = "edgeColor" + currentOrderingSize +"-" + nextCase;
+			}
+			//removeOldGaps(usableViewpoints,nextCase);  <-- We updated the function to remove stuff for us.
 			return "";
 		}
 		
-		everyViewpoints = new ArrayList<String>();
+		int newOrderingSize = ordering.size();
+		if(currentOrderingSize != newOrderingSize){
+			
+			/*String result = determineCase(ordering, nextCase, allPoints);
+			for(int sizeToRemove = currentOrderingSize; sizeToRemove <= newOrderingSize; sizeToRemove++){
+				String key = "edgeColor" + sizeToRemove +"-" + nextCase;
+				allTheMaps.remove(key);
+			}
+			removeOldGaps(usableViewpoints,nextCase);
+			return result;*/
+			edgeColor = allTheMaps.get("edgeColor" + newOrderingSize +"-" + nextCase);
+		}
+		
+		ArrayList<String> usableFromAllPoints = usableViewpoints;
+		
+		/*everyViewpoints = new ArrayList<String>();
 		usableViewpoints = new ArrayList<String>();
 		
 		for (String s : allPoints)
@@ -178,13 +541,45 @@ public class MyClient {
 		if (usableViewpoints.size() <= 0)//allPoints.length - viewPointsToCheck)
 		{
 			System.out.println(ordering);//" + viewPointsToCheck + " VPs.");//everything. ");
+			removeOldGaps(usableFromAllPoints,nextCase);
 			return ordering.toString();
-		}
+		}*/
+		
+		
 		//int optimalViewpointIndex = -1;
 		//int minGaps = 1040;
 		
 		// determine which viewpoint is the point we are going to recurse
        // ArrayList<Integer> optimalGaps = new ArrayList<Integer>();
+	   int minIndex = 0;
+	   ArrayList<String> gaps = gapsThatWork.get(usableViewpoints.get(0)+"-"+nextCase).peek();
+	   int min=999;
+		if(gaps.get(0).equals("Big"))
+			min = ordering.size();
+		else
+			min = gaps.size();
+		
+	   for(int i=1; i<usableViewpoints.size(); i++){
+		   
+		   gaps = gapsThatWork.get(usableViewpoints.get(i)+"-"+nextCase).peek();
+		   int len=999;
+			if(gaps.get(0).equals("Big"))
+				len = ordering.size();
+			else
+				len = gaps.size();
+			
+		   if(len < min){
+			   min = len;
+			   minIndex = i;
+		   }
+	   }
+	   
+	   if (min == ordering.size())//allPoints.length - viewPointsToCheck)
+		{
+			System.out.println(ordering);//" + viewPointsToCheck + " VPs.");//everything. ");
+			removeOldGaps(usableFromAllPoints,nextCase);
+			return ordering.toString();
+		}
         
 		for (int i = 0; i < 1; i++)//usableViewpoints.size(); ++i)
 		{
@@ -194,10 +589,17 @@ public class MyClient {
             //ArrayList<Integer> storedGaps = new ArrayList<Integer>();
             //int numFeasibleGaps = 0;
             // storedGaps.clear();
-			String thisPoint = usableViewpoints.get(i);
-			
-			for (int j = 0; j < ordering.size(); ++j)
+			String thisPoint = usableViewpoints.get(minIndex);
+			ArrayList<String> gapsForThisPoint = gapsThatWork.get(thisPoint+"-"+nextCase).peek();
+			int j = 0;
+			for (int z = 0; z < gapsForThisPoint.size(); ++z)
 			{
+				String thisGap = gapsForThisPoint.get(z);
+				String rightPointOfGap = thisGap.substring(thisGap.indexOf(':')+1);
+				System.out.println("Processing gap: " + thisGap + ", looking for " + rightPointOfGap);
+				while(!rightPointOfGap.equals(ordering.get(j))){
+					j++;
+				}
 				
 				HashMap<ArrayList<String>, String> copyOfEdgeColors = new HashMap<ArrayList<String>, String>(edgeColor);
 				
@@ -206,7 +608,7 @@ public class MyClient {
 				ArrayList<String> newOrdering = new ArrayList<String>();
 				newOrdering.clear();
 				newOrdering.addAll(ordering);
-				newOrdering.add(j, usableViewpoints.get(i));
+				newOrdering.add(j, thisPoint);
 				
 				for(int k=0; k<newOrdering.size(); k++)
 				{
@@ -237,14 +639,14 @@ public class MyClient {
 				if (isFeasibleOrdering(newOrdering,copyOfEdgeColors,true,nextCase))
 				{
 					String result = determineCase(newOrdering, nextCase, allPoints);
-					if (!result.equals(""))
+					/*if (!result.equals(""))
 					{
 						//File myObj = new File("edgeColor" + ordering.size() +"-" + nextCase + ".ser");
 						//myObj.delete();
 						String key = "edgeColor" + ordering.size() +"-" + nextCase;
 						allTheMaps.remove(key);
 						return result;
-					}
+					}*/
 					/*storedGaps.add(j);
 				  numFeasibleGaps++;
 
@@ -281,8 +683,11 @@ public class MyClient {
         }*/
 		//File myObj = new File("edgeColor" + ordering.size() +"-" + nextCase + ".ser");
 		//myObj.delete();
-		String key = "edgeColor" + ordering.size() +"-" + nextCase;
-		allTheMaps.remove(key);
+		for(int sizeToRemove = currentOrderingSize; sizeToRemove <= newOrderingSize; sizeToRemove++){
+			String key = "edgeColor" + sizeToRemove +"-" + nextCase;
+			allTheMaps.remove(key);
+		}
+		removeOldGaps(usableFromAllPoints,nextCase);
         return "";
     }
     
@@ -310,15 +715,9 @@ public class MyClient {
     //return pair;
   }
 
-    // find red edges, basically re-run the findRedEdges
-    // input: BDEH,ACEFH,A,...
-    //commented out so I could test this
-    //public static void findRedEdges(String caseAcceptedLine)
-    //{
-      //  ArrayList<String> points = 
-    //}
 
-  public static boolean isFeasibleOrdering(ArrayList<String> points, HashMap<ArrayList<String>, String> edgeColor,  Boolean writeEdgeColor, String nextCase) {
+  
+   public static boolean isFeasibleOrdering(ArrayList<String> points, HashMap<ArrayList<String>, String> edgeColor,  Boolean writeEdgeColor, String nextCase) {
     // System.out.println(points);
     // Edge colors:
     // Green - See each other - unpierceable and close
@@ -424,6 +823,14 @@ public class MyClient {
           pair.clear();
           computePair(i, l, pair, points);
 		  String ilColor = edgeColor.get(pair);
+		  
+		  if(ilColor == null){
+			  
+			  System.out.println("Edge we were looking for: " + pair);
+			  System.out.println("Current order: ");
+			  System.out.println(points);
+			  System.exit(0);
+		  }
 		  
 		  //System.out.println(pair);
 		  if(ilColor.equalsIgnoreCase("blue") || ilColor.equalsIgnoreCase("purple") || ilColor.equalsIgnoreCase("green"))
@@ -2018,7 +2425,14 @@ public class MyClient {
 		//System.out.println("Writing the edge colors.");
 		try{
 			
-			//If an edge was written as "YELLOW", we want to save it as "yellow".
+			/*FileOutputStream file = new FileOutputStream("edgeColor" + points.size() +"-" + nextCase + ".ser");
+			ObjectOutputStream out = new ObjectOutputStream(file);
+			  
+			out.writeObject(edgeColor);
+			  
+			out.close();
+			file.close();*/
+			
 			for(Map.Entry<ArrayList<String>, String> entry: edgeColor.entrySet()) {
 
 				ArrayList<String> datPair = entry.getKey();
@@ -2050,7 +2464,6 @@ public class MyClient {
 	
     return true;
   }
-  
   
   public static boolean mustBeClose(String color){
 	  
@@ -2195,6 +2608,111 @@ public class MyClient {
 		return allPoints;
 	  
   }
+  
+  public static ArrayList<String> initializeGapsThatWork(ArrayList<String> ordering, HashMap<ArrayList<String>, String> edgeColor, String nextCase, ArrayList<String> importantPoints){
+	  
+	  String[] everyFreakinPoint = {"HI", "GI", "GH", "GHI", "FI", "FH", "FHI", "FG", "FGI", "FGH", "FGHI", "EI", "EH", "EHI", "EG", "EGI", "EGH", "EGHI", "EF", "EFI", "EFH", "EFHI", "EFG", "EFGI", "EFGH", "EFGHI", "DI", "DH", "DHI", "DG", "DGI", "DGH", "DGHI", "DF", "DFI", "DFH", "DFHI", "DFG", "DFGI", "DFGH", "DFGHI", "DE", "DEI", "DEH", "DEHI", "DEG", "DEGI", "DEGH", "DEGHI", "DEF", "DEFI", "DEFH", "DEFHI", "DEFG", "DEFGI", "DEFGH", "DEFGHI", "CI", "CH", "CHI", "CG", "CGI", "CGH", "CGHI", "CF", "CFI", "CFH", "CFHI", "CFG", "CFGI", "CFGH", "CFGHI", "CE", "CEI", "CEH", "CEHI", "CEG", "CEGI", "CEGH", "CEGHI", "CEF", "CEFI", "CEFH", "CEFHI", "CEFG", "CEFGI", "CEFGH", "CEFGHI", "CD", "CDI", "CDH", "CDHI", "CDG", "CDGI", "CDGH", "CDGHI", "CDF", "CDFI", "CDFH", "CDFHI", "CDFG", "CDFGI", "CDFGH", "CDFGHI", "CDE", "CDEI", "CDEH", "CDEHI", "CDEG", "CDEGI", "CDEGH", "CDEGHI", "CDEF", "CDEFI", "CDEFH", "CDEFHI", "CDEFG", "CDEFGI", "CDEFGH", "CDEFGHI", "BI", "BH", "BHI", "BG", "BGI", "BGH", "BGHI", "BF", "BFI", "BFH", "BFHI", "BFG", "BFGI", "BFGH", "BFGHI", "BE", "BEI", "BEH", "BEHI", "BEG", "BEGI", "BEGH", "BEGHI", "BEF", "BEFI", "BEFH", "BEFHI", "BEFG", "BEFGI", "BEFGH", "BEFGHI", "BD", "BDI", "BDH", "BDHI", "BDG", "BDGI", "BDGH", "BDGHI", "BDF", "BDFI", "BDFH", "BDFHI", "BDFG", "BDFGI", "BDFGH", "BDFGHI", "BDE", "BDEI", "BDEH", "BDEHI", "BDEG", "BDEGI", "BDEGH", "BDEGHI", "BDEF", "BDEFI", "BDEFH", "BDEFHI", "BDEFG", "BDEFGI", "BDEFGH", "BDEFGHI", "BC", "BCI", "BCH", "BCHI", "BCG", "BCGI", "BCGH", "BCGHI", "BCF", "BCFI", "BCFH", "BCFHI", "BCFG", "BCFGI", "BCFGH", "BCFGHI", "BCE", "BCEI", "BCEH", "BCEHI", "BCEG", "BCEGI", "BCEGH", "BCEGHI", "BCEF", "BCEFI", "BCEFH", "BCEFHI", "BCEFG", "BCEFGI", "BCEFGH", "BCEFGHI", "BCD", "BCDI", "BCDH", "BCDHI", "BCDG", "BCDGI", "BCDGH", "BCDGHI", "BCDF", "BCDFI", "BCDFH", "BCDFHI", "BCDFG", "BCDFGI", "BCDFGH", "BCDFGHI", "BCDE", "BCDEI", "BCDEH", "BCDEHI", "BCDEG", "BCDEGI", "BCDEGH", "BCDEGHI", "BCDEF", "BCDEFI", "BCDEFH", "BCDEFHI", "BCDEFG", "BCDEFGI", "BCDEFGH", "BCDEFGHI", "AI", "AH", "AHI", "AG", "AGI", "AGH", "AGHI", "AF", "AFI", "AFH", "AFHI", "AFG", "AFGI", "AFGH", "AFGHI", "AE", "AEI", "AEH", "AEHI", "AEG", "AEGI", "AEGH", "AEGHI", "AEF", "AEFI", "AEFH", "AEFHI", "AEFG", "AEFGI", "AEFGH", "AEFGHI", "AD", "ADI", "ADH", "ADHI", "ADG", "ADGI", "ADGH", "ADGHI", "ADF", "ADFI", "ADFH", "ADFHI", "ADFG", "ADFGI", "ADFGH", "ADFGHI", "ADE", "ADEI", "ADEH", "ADEHI", "ADEG", "ADEGI", "ADEGH", "ADEGHI", "ADEF", "ADEFI", "ADEFH", "ADEFHI", "ADEFG", "ADEFGI", "ADEFGH", "ADEFGHI", "AC", "ACI", "ACH", "ACHI", "ACG", "ACGI", "ACGH", "ACGHI", "ACF", "ACFI", "ACFH", "ACFHI", "ACFG", "ACFGI", "ACFGH", "ACFGHI", "ACE", "ACEI", "ACEH", "ACEHI", "ACEG", "ACEGI", "ACEGH", "ACEGHI", "ACEF", "ACEFI", "ACEFH", "ACEFHI", "ACEFG", "ACEFGI", "ACEFGH", "ACEFGHI", "ACD", "ACDI", "ACDH", "ACDHI", "ACDG", "ACDGI", "ACDGH", "ACDGHI", "ACDF", "ACDFI", "ACDFH", "ACDFHI", "ACDFG", "ACDFGI", "ACDFGH", "ACDFGHI", "ACDE", "ACDEI", "ACDEH", "ACDEHI", "ACDEG", "ACDEGI", "ACDEGH", "ACDEGHI", "ACDEF", "ACDEFI", "ACDEFH", "ACDEFHI", "ACDEFG", "ACDEFGI", "ACDEFGH", "ACDEFGHI", "AB", "ABI", "ABH", "ABHI", "ABG", "ABGI", "ABGH", "ABGHI", "ABF", "ABFI", "ABFH", "ABFHI", "ABFG", "ABFGI", "ABFGH", "ABFGHI", "ABE", "ABEI", "ABEH", "ABEHI", "ABEG", "ABEGI", "ABEGH", "ABEGHI", "ABEF", "ABEFI", "ABEFH", "ABEFHI", "ABEFG", "ABEFGI", "ABEFGH", "ABEFGHI", "ABD", "ABDI", "ABDH", "ABDHI", "ABDG", "ABDGI", "ABDGH", "ABDGHI", "ABDF", "ABDFI", "ABDFH", "ABDFHI", "ABDFG", "ABDFGI", "ABDFGH", "ABDFGHI", "ABDE", "ABDEI", "ABDEH", "ABDEHI", "ABDEG", "ABDEGI", "ABDEGH", "ABDEGHI", "ABDEF", "ABDEFI", "ABDEFH", "ABDEFHI", "ABDEFG", "ABDEFGI", "ABDEFGH", "ABDEFGHI", "ABC", "ABCI", "ABCH", "ABCHI", "ABCG", "ABCGI", "ABCGH", "ABCGHI", "ABCF", "ABCFI", "ABCFH", "ABCFHI", "ABCFG", "ABCFGI", "ABCFGH", "ABCFGHI", "ABCE", "ABCEI", "ABCEH", "ABCEHI", "ABCEG", "ABCEGI", "ABCEGH", "ABCEGHI", "ABCEF", "ABCEFI", "ABCEFH", "ABCEFHI", "ABCEFG", "ABCEFGI", "ABCEFGH", "ABCEFGHI", "ABCD", "ABCDI", "ABCDH", "ABCDHI", "ABCDG", "ABCDGI", "ABCDGH", "ABCDGHI", "ABCDF", "ABCDFI", "ABCDFH", "ABCDFHI", "ABCDFG", "ABCDFGI", "ABCDFGH", "ABCDFGHI", "ABCDE", "ABCDEI", "ABCDEH", "ABCDEHI", "ABCDEG", "ABCDEGI", "ABCDEGH", "ABCDEGHI", "ABCDEF", "ABCDEFI", "ABCDEFH", "ABCDEFHI", "ABCDEFG", "ABCDEFGI", "ABCDEFGH", "ABCDEFGHI"};
+	  
+	  int bigThreshold = 6;
+	  
+	  ArrayList<String> everyViewpoints = new ArrayList<String>();
+	  for (String s : everyFreakinPoint)
+	  {
+		everyViewpoints.add(s);
+	  }
+	  ArrayList<String> usableViewpoints = new ArrayList<String>();
+	  usableViewpoints = availableViewpoints(ordering, everyViewpoints);
+	  
+	  for(int i=0; i<usableViewpoints.size(); i++){
+		  
+		  String thisPoint = usableViewpoints.get(i);
+		  ArrayList<String> gapsForThisPoint = new ArrayList<String>();
+		  Stack<ArrayList<String>> stackForThisPoint = new Stack<ArrayList<String>>();
+		  
+		  String prevPoint = "-infty";
+		  
+		  //System.out.println("Current point: " + thisPoint + ", current order length: " + ordering.size());
+		  
+		  for (int j = 0; j < ordering.size(); ++j)
+			{
+				
+				String currentPoint = ordering.get(j);
+				
+				HashMap<ArrayList<String>, String> copyOfEdgeColors = new HashMap<ArrayList<String>, String>(edgeColor);
+				
+				
+				
+				ArrayList<String> newOrdering = new ArrayList<String>();
+				newOrdering.clear();
+				newOrdering.addAll(ordering);
+				newOrdering.add(j, usableViewpoints.get(i));
+				
+				for(int k=0; k<newOrdering.size(); k++)
+				{
+					if(k==j)
+						continue;
+					
+					ArrayList<String> pair = new ArrayList<String>();
+					computePair(k,j,pair,newOrdering);
+					String otherPoint = newOrdering.get(k);
+					
+					if(otherPoint.length() > 1){
+					
+						//VP-VP edge
+						copyOfEdgeColors.put(pair,"cyan");
+					}
+					else if(thisPoint.indexOf(otherPoint) == -1){
+						
+						//VP-Guard that don't see each other
+						copyOfEdgeColors.put(pair,"orange");				
+					}
+					else{
+						//VP-Guard that see each other
+						copyOfEdgeColors.put(pair,"green");
+					}
+				}
+				
+                
+				if (isFeasibleOrdering(newOrdering,copyOfEdgeColors,false,nextCase))
+				{
+					gapsForThisPoint.add(prevPoint + ":" + currentPoint);
+					
+					if(gapsForThisPoint.size() > bigThreshold && !importantPoints.contains(thisPoint))
+						break;
+					
+				}
+				
+				prevPoint = currentPoint;
+			}
+			
+			if(gapsForThisPoint.size() == 0){
+				System.out.println("No gaps for " + thisPoint + ".  Rejecting.");
+				for(int z =0; z<i; z++){
+					String oldPoint = usableViewpoints.get(z);
+					String hashKey = oldPoint + "-" + nextCase;
+					gapsThatWork.get(hashKey).pop();
+				}
+				
+				return null;  //null means we are rejecting.
+			}
+			
+			if(gapsForThisPoint.size() > bigThreshold  && !importantPoints.contains(thisPoint)){
+				gapsForThisPoint = new ArrayList<String>();
+				gapsForThisPoint.add("Big");
+				gapsForThisPoint.add("Brah");
+			}
+			
+			
+			System.out.println("Gaps for " + thisPoint + ": " + gapsForThisPoint);
+			stackForThisPoint.push(gapsForThisPoint);
+			String hashKey = thisPoint + "-" + nextCase;
+			gapsThatWork.put(hashKey,stackForThisPoint);
+			
+	  }
+	  
+	  return ordering;
+	  
+  }
 
   public static class RunIt extends Thread {
         
@@ -2227,17 +2745,14 @@ public class MyClient {
 					
             try {
                 // Administrative stuff to connect with the server.                
-                // We are connecting on port 9451.                
-                //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                //out.println("1");  //sending a 1 to denote, I want to start
-                //boolean t = false;
+                // We are connecting on port 9451.
+                /*String serverAddress = "34.229.186.83";
+                Socket socket = new Socket(serverAddress, 9452);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                out.println("1");  //sending a 1 to denote, I want to start
+                */
                 while(true){
-					URL serverAddress = new URL("http://faculty.cs.uwosh.edu/faculty/krohn/fastlane/psm13.php?abc=plone");
-					//Socket socket = new Socket(serverAddress, 9452);
-					BufferedReader in = new BufferedReader(new InputStreamReader(serverAddress.openStream()));
-					String line = in.readLine();
-					//System.out.println(line);
-					in.close();
                     /*String nextCase = in.readLine();
                     //close socket for now
                     in.close();
@@ -2260,12 +2775,12 @@ public class MyClient {
                     String fileStuff;// = nextCase.substring(firstComma + 1);
 					
 					//fileStuff = "A,B,C,D,E,F,G,H,ACEG,I";
-					int firstComma = line.indexOf(',');
-                    String caseNumber = line.substring(0, firstComma);
-					
-					fileStuff = line.substring(firstComma+1);
-					fileStuff = fileStuff.trim().replace(" ", "");  //gtfo spaces... spaces already tf out
-                    //fileStuff = fileStuff.substring(1, fileStuff.length()-1);  //gtfo braces... braces already tf out
+					//fileStuff = "[ACEG, A, B, C, D, E, F, G, H, I]";
+					fileStuff = "[ADFH, BDFH, CEGI, BEGI, ACEG, A, B, BDGI, C, D, ACEH, E, ACFH, F, G, H, BDFI, I]";
+					//fileStuff = "[CDFI, ADFH, BDFH, BEHI, BEFH, BDEH, ABEH, BCEH, BEGH, CEGI, BEGI, ACEG, ADEG, ADGI, A, B, BDGI, CEFI, C, CFGI, BCFI, D, ACEH, E, ACFH, ACFI, F, CFHI, ADGH, G, ACDG, ABDG, ADFG, H, BDFI, I]";
+					//fileStuff = "ACFI,BCFI,CFHI,ACFH,ADFH,BDFH,ABEH,BEHI,BEFH,BDEH,BCEH,BEGH,BEGI,CEGI,ACEG,ACDG,ADGI,ADEG,A,ABDG,B,BDGI,CEFI,CFGI,C,CDFI,BDFI,ADFG,ADGH,D,ACEH,E,F,G,H,I";
+					fileStuff = fileStuff.replace(" ", "");  //gtfo spaces
+                    fileStuff = fileStuff.substring(1, fileStuff.length()-1);  //gtfo braces
 					
 					//BDFH,ACFH,ACEG,CEGI,A,B,BEGI,C,D,E,F,ACEH,G,H,ADFH,BDGI,BDFI,I";
 					//for(String fileStuff : acegLocations)
@@ -2277,132 +2792,108 @@ public class MyClient {
 						
 						 //   * case1.txt: ACEG BDFH ADEH ABEF BCFG CDGH A B C D E F G H
 						
-					System.out.println("working on case " + caseNumber);
-					System.out.println("case is: " + fileStuff);
-					String[] arr = fileStuff.split(",");
-					ArrayList<String> ordering = new ArrayList<String>();
-					for (String item : arr) {
-						ordering.add(item);
-					}
-						
-					// int acegIndex = ordering.indexOf("ACEG");
-					//int aIndex = ordering.indexOf("A");
-					boolean rejected = false;
-					/*if(aIndex < acegIndex){                        
-						System.out.println("Redundant ordering: ACEG is right of A.  Rejecting.");
-						System.out.flush();
-						rejected = true;
-					}
-						
-					int bdfhIndex = ordering.indexOf("BDFH");
-					int eIndex = ordering.indexOf("E");
-					int fIndex = ordering.indexOf("F");
-					if(eIndex < bdfhIndex && bdfhIndex < fIndex){
-							
-						System.out.println("Redundant ordering: BDFH is between E and F.  Rejecting.");
-						System.out.flush();
-						rejected = true;
-					}
-					
-					
-					int gIndex = ordering.indexOf("G");
-					int hIndex = ordering.indexOf("H");
-					if(gIndex < bdfhIndex && bdfhIndex < hIndex){
-						
-						System.out.println("Redundant ordering: BDFH is between G and H.  Rejecting.");
-						System.out.flush();
-						rejected = true;
-					}*/
-										
-					String erikLovesFiles = caseNumber; //Long.toString(Thread.currentThread().getId());//caseNumber;
-					if(!isFeasibleOrdering(ordering,null,true,erikLovesFiles))
-						rejected = true;
-					
-					String sendMe = "";
-					if(!rejected){                        
-					
-						double probToAccept;
-						
-						//String[] startingPoints = {"ABEH", "CFGI", "ACDG", "CDGI", "BEGH", "BCEGI", "ACDFH", "BDEGI", "BDFGHI", "BDGI", "ACFI", "ADFG", "BCDEFHI", "ABCEGI", "BCDEGI", "ABDEGH", "BCDGHI", "ACEFH", "CFI", "ADEH", "ACDFGHI", "BDFI", "CFHI", "BEFH", "ACDEFH", "BCFI", "ACDFGI", "BCEFHI", "ABCDFGI", "BEFI", "ABCFGH", "ADG", "ACEFGH", "ABDFHI", "ABDFH", "BCDFI", "ACDEG", "ACDEHI", "ACDEFGI", "BEHI", "ADGI", "BEGI", "ACFG", "ABDEGHI", "ABDEFGH", "ADGH", "CEGI", "BDEFGI", "BDEH", "BEH", "CEFGI", "ACEGH", "ABCEH", "ABDEFI", "ADEG", "CDEGHI", "ABEFGI", "CDFI", "BDFGI", "ABCEFG", "ABDGI", "ABEG", "ADFI", "ACEH", "ADFGH", "ABCDFH", "BCFH", "BCEFGHI", "CEFI", "BEGHI", "BCDFGH", "ADFH", "BDGH", "ACEGHI", "BCEH", "ACFH", "ABDG", "BDEFH", "CEHI", "ABCEFHI", "ABCDEGH", "ADEFHI", "ACFHI" }; probToAccept = 30/((double)startingPoints.length);
-						//String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BEGI","ACFH","BDGI","ACEH","BDFI","ADEG","BEFH","CFGI","ADGH","BEHI","ACFI","ABDG","BCEH","CDFI","ADFG","BEGH","CFHI","ADGI","ABEH","BCFI","ACDG","BDEH","CEFI" }; probToAccept = 33; //ZED = Zhongxiu ends debate.
-						//String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BDGI","ACEH","ADEG","BEFH","ACFI","ABDG","BCEH","CDFI","ADFG","CFHI","ADGI","ABEH","BCFI","BDEH" }; probToAccept = 44; //ZED = Zhongxiu ends debate.
-						//String[] startingPoints = {"BDFH","CEGI","BDGI","ACEH","ADEG","BEFH","ABDG","BCEH","CDFI","CFHI","ADGI","ABEH","BCFI" }; probToAccept = 55; //ZED = Zhongxiu ends debate.
-						//String[] startingPoints = {"BDFH","CEGI","ADFH","BEGI","ACFH","BDGI","ACEH","BDFI"}; probToAccept = 66; //ZED = Zhongxiu ends debate.
-						String[] startingPoints = {"ADEG","BEFH","CFGI","ADGH","BEHI","ACFI","ABDG","BCEH","CDFI","ADFG","BEGH","CFHI","ADGI","ABEH","BCFI","ACDG","BDEH","CEFI" }; probToAccept = 77; //ZED = Zhongxiu ends debate.
-						
-						ArrayList<String> someStuff = new ArrayList<String>();
-						 
-						for(int i=0; i<startingPoints.length; i++){
-							
-							if(Math.random() < probToAccept)
-								someStuff.add(startingPoints[i]);
-							
+						//System.out.println("working on case " + nextCase);
+						String[] arr = fileStuff.split(",");
+						ArrayList<String> ordering = new ArrayList<String>();
+						for (String item : arr) {
+							ordering.add(item);
 						}
 						
-						String[] allPoints = new String[someStuff.size()];
-						for(int i=0; i<someStuff.size(); i++){
-							allPoints[i] = someStuff.get(i);
+					   // int acegIndex = ordering.indexOf("ACEG");
+						//int aIndex = ordering.indexOf("A");
+						boolean rejected = false;
+						/*if(aIndex < acegIndex){                        
+							System.out.println("Redundant ordering: ACEG is right of A.  Rejecting.");
+							System.out.flush();
+							rejected = true;
 						}
 						
-						allPoints = sortViewpoints(ordering,allPoints,erikLovesFiles);
-					
-						long startTime = System.currentTimeMillis();
-						String result = determineCase(ordering, erikLovesFiles, allPoints);
-						long endTime = System.currentTimeMillis();
-						
-						long runningTime = (endTime - startTime)/1000;
-						
-						//when finished, remove all keys we used from static HashMap, maybe not necessary?
-						
-						if(!result.equals("")){
-							result = result.replace(" ", "");  //gtfo spaces
-							result = result.substring(1, result.length()-1);  //gtfo braces
-							System.out.println("Case " + caseNumber + "accepted in " + runningTime + " seconds. \n" + result + "\n"); //ordering on own line							
-						   // sendMe = caseNumber+",";
-							sendMe += result;
-							serverAddress = new URL("http://faculty.cs.uwosh.edu/faculty/krohn/fastlane/psmAccept.php?abc=plone&case="+caseNumber+"&order="+result);
-							//Socket socket = new Socket(serverAddress, 9452);
-							in = new BufferedReader(new InputStreamReader(serverAddress.openStream()));
-							line = in.readLine(); //nothing to read, it just prints a done message
-							//System.out.println(line);
-							in.close();							
-						} else{							
-							System.out.println("Case " + caseNumber + " rejected in " + runningTime + " seconds (which is what we want).\n");
-							serverAddress = new URL("http://faculty.cs.uwosh.edu/faculty/krohn/fastlane/psmReject.php?abc=plone&case="+caseNumber);
-							//Socket socket = new Socket(serverAddress, 9452);
-							in = new BufferedReader(new InputStreamReader(serverAddress.openStream()));
-							line = in.readLine(); //nothing to read, it just prints a done message
-							//System.out.println(line);
-							in.close();		
+						int bdfhIndex = ordering.indexOf("BDFH");
+						int eIndex = ordering.indexOf("E");
+						int fIndex = ordering.indexOf("F");
+						if(eIndex < bdfhIndex && bdfhIndex < fIndex){
 							
-							//System.out.println(someStuff);
-							//System.out.flush();
-							//System.exit(0);
-							//sendMe = "S"+caseNumber;
+							System.out.println("Redundant ordering: BDFH is between E and F.  Rejecting.");
+							System.out.flush();
+							rejected = true;
 						}
-					} else{
-						//reject case
-						System.out.println("Case rejected immediately - inital case is infeasible.");
-						serverAddress = new URL("http://faculty.cs.uwosh.edu/faculty/krohn/fastlane/psmReject.php?abc=plone&case="+caseNumber);
-						//Socket socket = new Socket(serverAddress, 9452);
-						in = new BufferedReader(new InputStreamReader(serverAddress.openStream()));
-						line = in.readLine(); //nothing to read, it just prints a done message
-						//System.out.println(line);
-						in.close();		
-					   // sendMe = "S"+caseNumber;
-					}
+						
+						
+						int gIndex = ordering.indexOf("G");
+						int hIndex = ordering.indexOf("H");
+						if(gIndex < bdfhIndex && bdfhIndex < hIndex){
+							
+							System.out.println("Redundant ordering: BDFH is between G and H.  Rejecting.");
+							System.out.flush();
+							rejected = true;
+						}*/
+											
+						String erikLovesFiles = Long.toString(Thread.currentThread().getId());//caseNumber;
+						if(!isFeasibleOrdering(ordering,null,true,erikLovesFiles))
+							rejected = true;
+						
+						String sendMe = "";
+						if(!rejected){                        
+						
+							double probToAccept;
+							
+							//String[] startingPoints = {"ABEH", "CFGI", "ACDG", "CDGI", "BEGH", "BCEGI", "ACDFH", "BDEGI", "BDFGHI", "BDGI", "ACFI", "ADFG", "BCDEFHI", "ABCEGI", "BCDEGI", "ABDEGH", "BCDGHI", "ACEFH", "CFI", "ADEH", "ACDFGHI", "BDFI", "CFHI", "BEFH", "ACDEFH", "BCFI", "ACDFGI", "BCEFHI", "ABCDFGI", "BEFI", "ABCFGH", "ADG", "ACEFGH", "ABDFHI", "ABDFH", "BCDFI", "ACDEG", "ACDEHI", "ACDEFGI", "BEHI", "ADGI", "BEGI", "ACFG", "ABDEGHI", "ABDEFGH", "ADGH", "CEGI", "BDEFGI", "BDEH", "BEH", "CEFGI", "ACEGH", "ABCEH", "ABDEFI", "ADEG", "CDEGHI", "ABEFGI", "CDFI", "BDFGI", "ABCEFG", "ABDGI", "ABEG", "ADFI", "ACEH", "ADFGH", "ABCDFH", "BCFH", "BCEFGHI", "CEFI", "BEGHI", "BCDFGH", "ADFH", "BDGH", "ACEGHI", "BCEH", "ACFH", "ABDG", "BDEFH", "CEHI", "ABCEFHI", "ABCDEGH", "ADEFHI", "ACFHI" }; probToAccept = 30/((double)startingPoints.length);
+							//String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BEGI","ACFH","BDGI","ACEH","BDFI","ADEG","BEFH","CFGI","ADGH","BEHI","ACFI","ABDG","BCEH","CDFI","ADFG","BEGH","CFHI","ADGI","ABEH","BCFI","ACDG","BDEH","CEFI" }; probToAccept = 33; //ZED = Zhongxiu ends debate.
+							//String[] startingPoints = {"ACEG","BDFH","CEGI","ADFH","BDGI","ACEH","ADEG","BEFH","ACFI","ABDG","BCEH","CDFI","ADFG","CFHI","ADGI","ABEH","BCFI","BDEH" }; probToAccept = 44; //ZED = Zhongxiu ends debate.
+							//String[] startingPoints = {"BDFH","CEGI","BDGI","ACEH","ADEG","BEFH","ABDG","BCEH","CDFI","CFHI","ADGI","ABEH","BCFI" }; probToAccept = 55; //ZED = Zhongxiu ends debate.
+							//String[] startingPoints = {"BDFH","CEGI","ADFH","BEGI","ACFH","BDGI","ACEH","BDFI"}; probToAccept = 66; //ZED = Zhongxiu ends debate.
+							//String[] startingPoints = {"ADEG","BEFH","CFGI","ADGH","BEHI","ACFI","ABDG","BCEH","CDFI","ADFG","BEGH","CFHI","ADGI","ABEH","BCFI","ACDG","BDEH","CEFI" }; probToAccept = 77; //ZED = Zhongxiu ends debate.
+							String[] startingPoints = {"CDGI", "BCEGI", "ACDFH", "BDEGI", "BDFGHI", "BCDEFHI", "ABCEGI", "BCDEGI", "ABDEGH"};probToAccept = 88;// "BCDGHI", "ACEFH", "CFI", "ADEH", "ACDFGHI", "ACDEFH",  "ACDFGI", "BCEFHI", "ABCDFGI", "BEFI", "ABCFGH", "ADG", "ACEFGH", "ABDFHI", "ABDFH", "BCDFI", "ACDEG", "ACDEHI", "ACDEFGI", "ACFG", "ABDEGHI", "ABDEFGH", "BDEFGI", "BEH", "CEFGI", "ACEGH", "ABCEH", "ABDEFI", "CDEGHI", "ABEFGI", "BDFGI", "ABCEFG", "ABDGI", "ABEG", "ADFI", "ADFGH", "ABCDFH", "BCFH", "BCEFGHI", "BEGHI", "BCDFGH", "BDGH", "ACEGHI","BDEFH", "CEHI", "ABCEFHI", "ABCDEGH", "ADEFHI", "ACFHI" }; 
+							//probToAccept = 88;
+							//fileStuff = "CDFI,ADFH,BDFH,CFHI,BCFI,CEFI,ABEH,BEHI,BEFH,BEGH,BEGI,CEGI,ACEG,ACDG,ADGI,ADGH,ADEG,A,ABDG,B,C,BDGI,BCEH,BDEH,ACFH,D,ACEH,ACFI,E,F,CFGI,G,ADFG,H,BDFI,I";
+							
+							ArrayList<String> someStuff = new ArrayList<String>();
+							 
+							for(int i=0; i<startingPoints.length; i++){
+								
+								if(Math.random() < probToAccept)
+									someStuff.add(startingPoints[i]);
+								
+							}
+							
+							String[] allPoints = new String[someStuff.size()];
+							for(int i=0; i<someStuff.size(); i++){
+								allPoints[i] = someStuff.get(i);
+							}
+							
+							//allPoints = sortViewpoints(ordering,allPoints,erikLovesFiles);
+							
+							//initializeGapsThatWork(ordering, allTheMaps.get("edgeColor" + ordering.size() + "-"+erikLovesFiles), erikLovesFiles);
+						
+							long startTime = System.currentTimeMillis();
+							String result = determineCase(ordering, erikLovesFiles, allPoints);
+							long endTime = System.currentTimeMillis();
+							
+							long runningTime = (endTime - startTime)/1000;
+							
+							if(!result.equals("")){
+								result = result.replace(" ", "");  //gtfo spaces
+								result = result.substring(1, result.length()-1);  //gtfo braces
+								System.out.println("Case accepted in " + runningTime + " seconds. \n" + result + "\n"); //ordering on own line
+							   // sendMe = caseNumber+",";
+								sendMe += result;
+								System.exit(0);
+							} else{
+								
+								System.out.println("Case rejected in " + runningTime + " seconds (which is what we want).\n");
+								System.out.println(someStuff);
+								System.out.flush();
+								System.exit(0);
+								//sendMe = "S"+caseNumber;
+							}
+						} else{
+							//reject case
+							System.out.println("Case rejected immediately - inital case is infeasible.");
+							System.exit(0);
+						   // sendMe = "S"+caseNumber;
+						}
 					
-					//remove all garbage from HashMap
-					for(String key : allTheMaps.keySet()){
-						String current = key.substring(key.indexOf("-")+1);
-						//System.out.println("start: " +key+" "+current+" "+erikLovesFiles);
-						if(current.equals(erikLovesFiles)){
-							//System.out.println("Removed key: "+key+" for case number "+current); //this appears to work
-							allTheMaps.remove(key);
-						}
-					}
-				
-				//}
+					//}
                     
                     /*socket = new Socket(serverAddress, 9452);
                     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
